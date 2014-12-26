@@ -30,10 +30,15 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
 	document.Body().AppendChild(canvas)
 
+	// DEBUG: Add framebuffer information div.
 	text := document.CreateElement("div")
 	textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, float64(width)*devicePixelRatio, devicePixelRatio)
 	text.SetTextContent(textContent)
 	document.Body().AppendChild(text)
+
+	// Request first animation frame.
+	animationFrameChan = make(chan struct{})
+	js.Global.Call("requestAnimationFrame", animationFrame)
 
 	return &Window{canvas}, nil
 }
@@ -67,4 +72,19 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 
 func (w *Window) ShouldClose() (bool, error) {
 	return false, nil
+}
+
+func (w *Window) SwapBuffers() error {
+	<-animationFrameChan
+	js.Global.Call("requestAnimationFrame", animationFrame)
+
+	return nil
+}
+
+var animationFrameChan chan struct{}
+
+func animationFrame() {
+	go func() {
+		animationFrameChan <- struct{}{}
+	}()
 }

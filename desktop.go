@@ -63,3 +63,17 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 	// TODO: Handle previous.
 	return nil, err
 }
+
+type FramebufferSizeCallback func(w *Window, width int, height int)
+
+func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback, err error) {
+	wrappedCbfun := func(_ *glfw.Window, width int, height int) {
+		cbfun(w, width, height)
+	}
+
+	p, err := w.Window.SetFramebufferSizeCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil, err
+}
