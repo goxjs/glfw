@@ -4,6 +4,8 @@ package goglfw
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"
@@ -68,6 +70,37 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 
 	// TODO: Handle previous.
 	return nil, nil
+}
+
+type FramebufferSizeCallback func(w *Window, width int, height int)
+
+func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback, err error) {
+	// TODO: Actually set the callback.
+
+	// TODO: Handle previous.
+	return nil, err
+}
+
+func (w *Window) GetSize() (width, height int, err error) {
+	// TODO: Handle units in a better, more general way.
+	//       Currently assumes "px" units.
+	widthString := strings.TrimSuffix(w.Canvas.Style().GetPropertyValue("width"), "px")
+	heightString := strings.TrimSuffix(w.Canvas.Style().GetPropertyValue("height"), "px")
+
+	width, err = strconv.Atoi(widthString)
+	if err != nil {
+		return 0, 0, err
+	}
+	height, err = strconv.Atoi(heightString)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return width, height, nil
+}
+
+func (w *Window) GetFramebufferSize() (width, height int, err error) {
+	return w.Canvas.Width, w.Canvas.Height, nil
 }
 
 func (w *Window) ShouldClose() (bool, error) {
