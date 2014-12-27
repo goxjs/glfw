@@ -26,8 +26,8 @@ func Terminate() error {
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
 	canvas := document.CreateElement("canvas").(*dom.HTMLCanvasElement)
 	devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
-	canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest int.
-	canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest int.
+	canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
+	canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
 	canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
 	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
 	document.Body().AppendChild(canvas)
@@ -38,8 +38,16 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	text.SetTextContent(textContent)
 	document.Body().AppendChild(text)
 
+	// TODO: A part of this should go into SetFramebufferSizeCallback and friends.
+	/*dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
+		devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
+		canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
+		canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
+		textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, float64(width)*devicePixelRatio, devicePixelRatio)
+		text.SetTextContent(textContent)
+	})*/
+
 	// Request first animation frame.
-	animationFrameChan = make(chan struct{})
 	js.Global.Call("requestAnimationFrame", animationFrame)
 
 	return &Window{canvas}, nil
@@ -114,7 +122,7 @@ func (w *Window) SwapBuffers() error {
 	return nil
 }
 
-var animationFrameChan chan struct{}
+var animationFrameChan = make(chan struct{})
 
 func animationFrame() {
 	go func() {
