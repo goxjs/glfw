@@ -32,6 +32,8 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
 	document.Body().AppendChild(canvas)
 
+	document.SetTitle(title)
+
 	// DEBUG: Add framebuffer information div.
 	text := document.CreateElement("div")
 	textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, float64(width)*devicePixelRatio, devicePixelRatio)
