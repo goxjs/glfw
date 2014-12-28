@@ -106,8 +106,11 @@ type CursorPositionCallback func(w *Window, xpos float64, ypos float64)
 func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previous CursorPositionCallback, err error) {
 	document.AddEventListener("mousemove", false, func(event dom.Event) {
 		me := event.(*dom.MouseEvent)
+
 		w.cursorPosition[0], w.cursorPosition[1] = float64(me.ClientX), float64(me.ClientY)
 		cbfun(w, w.cursorPosition[0], w.cursorPosition[1])
+
+		me.PreventDefault()
 	})
 
 	// TODO: Handle previous.
