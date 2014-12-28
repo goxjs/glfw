@@ -88,6 +88,8 @@ type Window struct {
 
 	cursorPosition [2]float64
 	mouseButton    [3]Action
+
+	touches js.Object // Hacky mouse-emulation-via-touch.
 }
 
 type Monitor struct {
@@ -112,6 +114,25 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 
 		me.PreventDefault()
 	})
+
+	// Hacky mouse-emulation-via-touch.
+	touchHandler := func(event dom.Event) {
+		te := event.(*dom.TouchEvent)
+
+		touches := te.Get("touches")
+		if touches.Length() > 0 {
+			t := touches.Index(0)
+
+			w.cursorPosition[0], w.cursorPosition[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
+			cbfun(w, w.cursorPosition[0], w.cursorPosition[1])
+		}
+		w.touches = touches
+
+		te.PreventDefault()
+	}
+	document.AddEventListener("touchstart", false, touchHandler)
+	document.AddEventListener("touchmove", false, touchHandler)
+	document.AddEventListener("touchend", false, touchHandler)
 
 	// TODO: Handle previous.
 	return nil, nil
@@ -179,6 +200,22 @@ func (w *Window) GetKey(key Key) (Action, error) {
 func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
 	if !(button >= 0 && button <= 2) {
 		return 0, fmt.Errorf("button is out of range: %v", button)
+	}
+
+	// Hacky mouse-emulation-via-touch.
+	if w.touches != nil {
+		switch button {
+		case MouseButton1:
+			if w.touches.Length() == 1 || w.touches.Length() == 3 {
+				return Press, nil
+			}
+		case MouseButton2:
+			if w.touches.Length() == 2 || w.touches.Length() == 3 {
+				return Press, nil
+			}
+		}
+
+		return Release, nil
 	}
 
 	return w.mouseButton[button], nil
