@@ -49,14 +49,45 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 		text.SetTextContent(textContent)
 	})*/
 
+	w := &Window{
+		Canvas: canvas,
+	}
+
+	document.AddEventListener("mousedown", false, func(event dom.Event) {
+		me := event.(*dom.MouseEvent)
+		if !(me.Button >= 0 && me.Button <= 2) {
+			return
+		}
+
+		w.mouseButton[me.Button] = Press
+
+		me.PreventDefault()
+	})
+	document.AddEventListener("mouseup", false, func(event dom.Event) {
+		me := event.(*dom.MouseEvent)
+		if !(me.Button >= 0 && me.Button <= 2) {
+			return
+		}
+
+		w.mouseButton[me.Button] = Release
+
+		me.PreventDefault()
+	})
+	document.AddEventListener("contextmenu", false, func(event dom.Event) {
+		event.PreventDefault()
+	})
+
 	// Request first animation frame.
 	js.Global.Call("requestAnimationFrame", animationFrame)
 
-	return &Window{canvas}, nil
+	return w, nil
 }
 
 type Window struct {
 	Canvas *dom.HTMLCanvasElement
+
+	cursorPosition [2]float64
+	mouseButton    [3]Action
 }
 
 type Monitor struct {
@@ -75,7 +106,8 @@ type CursorPositionCallback func(w *Window, xpos float64, ypos float64)
 func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previous CursorPositionCallback, err error) {
 	document.AddEventListener("mousemove", false, func(event dom.Event) {
 		me := event.(*dom.MouseEvent)
-		cbfun(w, float64(me.ClientX), float64(me.ClientY))
+		w.cursorPosition[0], w.cursorPosition[1] = float64(me.ClientX), float64(me.ClientY)
+		cbfun(w, w.cursorPosition[0], w.cursorPosition[1])
 	})
 
 	// TODO: Handle previous.
@@ -131,3 +163,43 @@ func animationFrame() {
 		animationFrameChan <- struct{}{}
 	}()
 }
+
+func (w *Window) GetCursorPosition() (x, y float64, err error) {
+	return w.cursorPosition[0], w.cursorPosition[1], nil
+}
+
+func (w *Window) GetKey(key Key) (Action, error) {
+	// TODO: Implement.
+	return Release, nil
+}
+
+func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
+	if !(button >= 0 && button <= 2) {
+		return 0, fmt.Errorf("button is out of range: %v", button)
+	}
+
+	return w.mouseButton[button], nil
+}
+
+type Key int
+
+const (
+	KeyLeftShift  Key = 340
+	KeyRightShift Key = 344
+)
+
+type MouseButton int
+
+const (
+	MouseButton1 MouseButton = 0
+	MouseButton2 MouseButton = 2 // Web MouseEvent has middle and right mouse buttons in reverse order.
+	MouseButton3 MouseButton = 1 // Web MouseEvent has middle and right mouse buttons in reverse order.
+)
+
+type Action int
+
+const (
+	Release Action = 0
+	Press   Action = 1
+	Repeat  Action = 2
+)

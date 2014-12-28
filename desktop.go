@@ -77,3 +77,35 @@ func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (prev
 	// TODO: Handle previous.
 	return nil, err
 }
+
+func (w *Window) GetKey(key Key) (Action, error) {
+	a, err := w.Window.GetKey(glfw.Key(key))
+	return Action(a), err
+}
+
+func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
+	a, err := w.Window.GetMouseButton(glfw.MouseButton(button))
+	return Action(a), err
+}
+
+type Key glfw.Key
+
+const (
+	KeyLeftShift  = Key(glfw.KeyLeftShift)
+	KeyRightShift = Key(glfw.KeyRightShift)
+)
+
+type MouseButton glfw.MouseButton
+
+const (
+	MouseButton1 = MouseButton(glfw.MouseButton1)
+	MouseButton2 = MouseButton(glfw.MouseButton2)
+)
+
+type Action glfw.Action
+
+const (
+	Release = Action(glfw.Release)
+	Press   = Action(glfw.Press)
+	Repeat  = Action(glfw.Repeat)
+)
