@@ -3,9 +3,11 @@
 package goglfw
 
 import (
+	"os"
 	"runtime"
 
 	glfw "github.com/shurcooL/glfw3"
+	"golang.org/x/tools/godoc/vfs"
 )
 
 func Init() error {
@@ -109,3 +111,10 @@ const (
 	Press   = Action(glfw.Press)
 	Repeat  = Action(glfw.Repeat)
 )
+
+// Open opens a named asset.
+//
+// For now, assets are read directly from the current working directory.
+func Open(name string) (vfs.ReadSeekCloser, error) {
+	return os.Open(name)
+}

@@ -3,12 +3,16 @@
 package goglfw
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 
 	"github.com/gopherjs/gopherjs/js"
+	"golang.org/x/tools/godoc/vfs"
 	"honnef.co/go/js/dom"
+	"honnef.co/go/js/xhr"
 )
 
 var document = dom.GetWindow().Document().(dom.HTMLDocument)
@@ -243,3 +247,24 @@ const (
 	Press   Action = 1
 	Repeat  Action = 2
 )
+
+// Open opens a named asset.
+func Open(name string) (vfs.ReadSeekCloser, error) {
+	req := xhr.NewRequest("GET", name)
+	req.ResponseType = xhr.ArrayBuffer
+
+	err := req.Send(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	b := js.Global.Get("Uint8Array").New(req.Response).Interface().([]byte)
+
+	return nopCloser{bytes.NewReader(b)}, nil
+}
+
+type nopCloser struct {
+	io.ReadSeeker
+}
+
+func (nopCloser) Close() error { return nil }
