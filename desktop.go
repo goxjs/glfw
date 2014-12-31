@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/ajhager/webgl"
 	glfw "github.com/shurcooL/glfw3"
 	"golang.org/x/tools/godoc/vfs"
 )
@@ -31,17 +32,21 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	}
 
 	w, err := glfw.CreateWindow(width, height, title, m, s)
-
-	var window *Window
-	if w != nil {
-		window = &Window{w}
+	if err != nil {
+		return nil, err
 	}
+
+	window := &Window{Window: w}
+
+	window.Context = webgl.NewContext()
 
 	return window, err
 }
 
 type Window struct {
 	*glfw.Window
+
+	Context *webgl.Context
 }
 
 type Monitor struct {

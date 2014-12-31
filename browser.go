@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/ajhager/webgl"
 	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/tools/godoc/vfs"
 	"honnef.co/go/js/dom"
@@ -59,7 +60,22 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	})*/
 
 	w := &Window{
-		Canvas: canvas,
+		canvas: canvas,
+	}
+
+	// Create GL context.
+	{
+		// TODO: Use glfw hints.
+		attrs := webgl.DefaultAttributes()
+		attrs.Alpha = false
+		attrs.Antialias = false
+
+		gl, err := webgl.NewContext(w.canvas.Underlying(), attrs)
+		if err != nil {
+			return nil, err
+		}
+
+		w.Context = gl
 	}
 
 	document.AddEventListener("mousedown", false, func(event dom.Event) {
@@ -93,7 +109,9 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 }
 
 type Window struct {
-	Canvas *dom.HTMLCanvasElement
+	Context *webgl.Context
+
+	canvas *dom.HTMLCanvasElement
 
 	cursorPosition [2]float64
 	mouseButton    [3]Action
@@ -158,13 +176,13 @@ func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (prev
 
 func (w *Window) GetSize() (width, height int, err error) {
 	// TODO: See if dpi adjustments need to be made.
-	fmt.Println("Window.GetSize:", w.Canvas.GetBoundingClientRect().Width, w.Canvas.GetBoundingClientRect().Height)
+	fmt.Println("Window.GetSize:", w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
 
-	return w.Canvas.GetBoundingClientRect().Width, w.Canvas.GetBoundingClientRect().Height, nil
+	return w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height, nil
 }
 
 func (w *Window) GetFramebufferSize() (width, height int, err error) {
-	return w.Canvas.Width, w.Canvas.Height, nil
+	return w.canvas.Width, w.canvas.Height, nil
 }
 
 func (w *Window) ShouldClose() (bool, error) {
