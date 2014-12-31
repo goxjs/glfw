@@ -27,16 +27,17 @@ func Terminate() error {
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
+	// HACK: Go fullscreen?
+	width = dom.GetWindow().InnerWidth()
+	height = dom.GetWindow().InnerHeight()
+
 	canvas := document.CreateElement("canvas").(*dom.HTMLCanvasElement)
+
 	devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
-	/*canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
+	canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
 	canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
 	canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
-	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")*/
-
-	// HACK: Go fullscreen?
-	canvas.Width = dom.GetWindow().InnerWidth()
-	canvas.Height = dom.GetWindow().InnerHeight()
+	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
 
 	document.Body().AppendChild(canvas)
 
@@ -44,20 +45,12 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 
 	// DEBUG: Add framebuffer information div.
 	if false {
+		//canvas.Height -= 30
 		text := document.CreateElement("div")
 		textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, float64(width)*devicePixelRatio, devicePixelRatio)
 		text.SetTextContent(textContent)
 		document.Body().AppendChild(text)
 	}
-
-	// TODO: A part of this should go into SetFramebufferSizeCallback and friends.
-	/*dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
-		devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
-		canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
-		canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
-		textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, float64(width)*devicePixelRatio, devicePixelRatio)
-		text.SetTextContent(textContent)
-	})*/
 
 	w := &Window{
 		canvas: canvas,
@@ -168,10 +161,22 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 type FramebufferSizeCallback func(w *Window, width int, height int)
 
 func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback, err error) {
-	// TODO: Actually set the callback.
+	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
+		// HACK: Go fullscreen?
+		width := dom.GetWindow().InnerWidth()
+		height := dom.GetWindow().InnerHeight()
+
+		devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
+		w.canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
+		w.canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
+		w.canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
+		w.canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
+
+		cbfun(w, w.canvas.Width, w.canvas.Height)
+	})
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil, nil
 }
 
 func (w *Window) GetSize() (width, height int, err error) {
