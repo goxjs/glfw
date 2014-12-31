@@ -6,8 +6,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"strconv"
-	"strings"
 
 	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/tools/godoc/vfs"
@@ -30,19 +28,26 @@ func Terminate() error {
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
 	canvas := document.CreateElement("canvas").(*dom.HTMLCanvasElement)
 	devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
-	canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
+	/*canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
 	canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
 	canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
-	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
+	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")*/
+
+	// HACK: Go fullscreen?
+	canvas.Width = dom.GetWindow().InnerWidth()
+	canvas.Height = dom.GetWindow().InnerHeight()
+
 	document.Body().AppendChild(canvas)
 
 	document.SetTitle(title)
 
 	// DEBUG: Add framebuffer information div.
-	text := document.CreateElement("div")
-	textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, float64(width)*devicePixelRatio, devicePixelRatio)
-	text.SetTextContent(textContent)
-	document.Body().AppendChild(text)
+	if false {
+		text := document.CreateElement("div")
+		textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, float64(width)*devicePixelRatio, devicePixelRatio)
+		text.SetTextContent(textContent)
+		document.Body().AppendChild(text)
+	}
 
 	// TODO: A part of this should go into SetFramebufferSizeCallback and friends.
 	/*dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
@@ -152,21 +157,10 @@ func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (prev
 }
 
 func (w *Window) GetSize() (width, height int, err error) {
-	// TODO: Handle units in a better, more general way.
-	//       Currently assumes "px" units.
-	widthString := strings.TrimSuffix(w.Canvas.Style().GetPropertyValue("width"), "px")
-	heightString := strings.TrimSuffix(w.Canvas.Style().GetPropertyValue("height"), "px")
+	// TODO: See if dpi adjustments need to be made.
+	fmt.Println("Window.GetSize:", w.Canvas.GetBoundingClientRect().Width, w.Canvas.GetBoundingClientRect().Height)
 
-	width, err = strconv.Atoi(widthString)
-	if err != nil {
-		return 0, 0, err
-	}
-	height, err = strconv.Atoi(heightString)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return width, height, nil
+	return w.Canvas.GetBoundingClientRect().Width, w.Canvas.GetBoundingClientRect().Height, nil
 }
 
 func (w *Window) GetFramebufferSize() (width, height int, err error) {
