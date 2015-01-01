@@ -6,8 +6,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/ajhager/webgl"
 	glfw "github.com/shurcooL/glfw3"
+	"github.com/shurcooL/webgl"
 	"golang.org/x/tools/godoc/vfs"
 )
 

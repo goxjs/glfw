@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ajhager/webgl"
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/shurcooL/webgl"
 	"golang.org/x/tools/godoc/vfs"
 	"honnef.co/go/js/dom"
 	"honnef.co/go/js/xhr"
