@@ -26,10 +26,10 @@ func Terminate() error {
 	return nil
 }
 
-func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
+func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Window, error) {
 	// HACK: Go fullscreen?
-	width = dom.GetWindow().InnerWidth()
-	height = dom.GetWindow().InnerHeight()
+	width := dom.GetWindow().InnerWidth()
+	height := dom.GetWindow().InnerHeight()
 
 	canvas := document.CreateElement("canvas").(*dom.HTMLCanvasElement)
 
