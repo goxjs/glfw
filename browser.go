@@ -58,10 +58,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 	// Create GL context.
 	{
-		// TODO: Use glfw hints.
 		attrs := webgl.DefaultAttributes()
-		attrs.Alpha = false
-		attrs.Antialias = false
+		attrs.Alpha = (hints[AlphaBits] > 0)
+		attrs.Antialias = (hints[Samples] > 0)
 
 		gl, err := webgl.NewContext(w.canvas.Underlying(), attrs)
 		if err != nil {
