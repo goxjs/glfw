@@ -264,6 +264,15 @@ const (
 	Repeat  Action = 2
 )
 
+type ModifierKey int
+
+const (
+	ModShift ModifierKey = iota
+	ModControl
+	ModAlt
+	ModSuper
+)
+
 // Open opens a named asset.
 func Open(name string) (vfs.ReadSeekCloser, error) {
 	req := xhr.NewRequest("GET", name)

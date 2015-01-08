@@ -43,6 +43,10 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	return window, err
 }
 
+func SwapInterval(interval int) error {
+	return glfw.SwapInterval(interval)
+}
+
 type Window struct {
 	*glfw.Window
 
@@ -95,6 +99,14 @@ func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
 	return Action(a), err
 }
 
+func (w *Window) GetInputMode(mode InputMode) (int, error) {
+	return w.Window.GetInputMode(glfw.InputMode(mode))
+}
+
+func (w *Window) SetInputMode(mode InputMode, value int) error {
+	return w.Window.SetInputMode(glfw.InputMode(mode), value)
+}
+
 type Key glfw.Key
 
 const (
@@ -115,6 +127,29 @@ const (
 	Release = Action(glfw.Release)
 	Press   = Action(glfw.Press)
 	Repeat  = Action(glfw.Repeat)
+)
+
+type InputMode int
+
+const (
+	Cursor             = InputMode(glfw.Cursor)
+	StickyKeys         = InputMode(glfw.StickyKeys)
+	StickyMouseButtons = InputMode(glfw.StickyMouseButtons)
+)
+
+const (
+	CursorNormal   = int(glfw.CursorNormal)
+	CursorHidden   = int(glfw.CursorHidden)
+	CursorDisabled = int(glfw.CursorDisabled)
+)
+
+type ModifierKey int
+
+const (
+	ModShift   = ModifierKey(glfw.ModShift)
+	ModControl = ModifierKey(glfw.ModControl)
+	ModAlt     = ModifierKey(glfw.ModAlt)
+	ModSuper   = ModifierKey(glfw.ModSuper)
 )
 
 // Open opens a named asset.
