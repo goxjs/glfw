@@ -4,6 +4,7 @@ package goglfw
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 
@@ -241,6 +242,37 @@ func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
 	return w.mouseButton[button], nil
 }
 
+func (w *Window) GetInputMode(mode InputMode) (int, error) {
+	return 0, errors.New("not yet impl")
+}
+
+var ErrInvalidParameter = errors.New("invalid parameter")
+var ErrInvalidValue = errors.New("invalid value")
+
+func (w *Window) SetInputMode(mode InputMode, value int) error {
+	switch mode {
+	case Cursor:
+		switch value {
+		case CursorNormal:
+			w.canvas.Style().SetProperty("cursor", "initial", "")
+			return nil
+		case CursorHidden:
+			w.canvas.Style().SetProperty("cursor", "none", "")
+			return nil
+		case CursorDisabled:
+			return errors.New("not yet impl")
+		default:
+			return ErrInvalidValue
+		}
+	case StickyKeys:
+		return errors.New("not impl")
+	case StickyMouseButtons:
+		return errors.New("not impl")
+	default:
+		return ErrInvalidParameter
+	}
+}
+
 type Key int
 
 const (
@@ -262,6 +294,20 @@ const (
 	Release Action = 0
 	Press   Action = 1
 	Repeat  Action = 2
+)
+
+type InputMode int
+
+const (
+	Cursor InputMode = iota
+	StickyKeys
+	StickyMouseButtons
+)
+
+const (
+	CursorNormal = iota
+	CursorHidden
+	CursorDisabled
 )
 
 type ModifierKey int
