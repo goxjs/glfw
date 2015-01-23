@@ -75,6 +75,20 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 	return nil, err
 }
 
+type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
+
+func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback, err error) {
+	wrappedCbfun := func(_ *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+		cbfun(w, MouseButton(button), Action(action), ModifierKey(mods))
+	}
+
+	p, err := w.Window.SetMouseButtonCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil, err
+}
+
 type FramebufferSizeCallback func(w *Window, width int, height int)
 
 func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback, err error) {

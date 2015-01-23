@@ -78,6 +78,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		w.mouseButton[me.Button] = Press
+		if w.mouseButtonCallback != nil {
+			w.mouseButtonCallback(w, MouseButton(me.Button), Press, 0)
+		}
 
 		me.PreventDefault()
 	})
@@ -88,6 +91,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		w.mouseButton[me.Button] = Release
+		if w.mouseButtonCallback != nil {
+			w.mouseButtonCallback(w, MouseButton(me.Button), Release, 0)
+		}
 
 		me.PreventDefault()
 	})
@@ -108,6 +114,8 @@ type Window struct {
 
 	cursorPosition [2]float64
 	mouseButton    [3]Action
+
+	mouseButtonCallback MouseButtonCallback
 
 	touches js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -153,6 +161,15 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 	document.AddEventListener("touchstart", false, touchHandler)
 	document.AddEventListener("touchmove", false, touchHandler)
 	document.AddEventListener("touchend", false, touchHandler)
+
+	// TODO: Handle previous.
+	return nil, nil
+}
+
+type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
+
+func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback, err error) {
+	w.mouseButtonCallback = cbfun
 
 	// TODO: Handle previous.
 	return nil, nil
