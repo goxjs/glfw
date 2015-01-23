@@ -101,6 +101,45 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		event.PreventDefault()
 	})
 
+	document.AddEventListener("mousemove", false, func(event dom.Event) {
+		me := event.(*dom.MouseEvent)
+
+		w.cursorPosition[0], w.cursorPosition[1] = float64(me.ClientX), float64(me.ClientY)
+		if w.cursorPositionCallback != nil {
+			w.cursorPositionCallback(w, w.cursorPosition[0], w.cursorPosition[1])
+		}
+		if w.mouseMovementCallback != nil {
+			w.mouseMovementCallback(w, float64(me.MovementX), float64(me.MovementY))
+		}
+
+		me.PreventDefault()
+	})
+
+	// Hacky mouse-emulation-via-touch.
+	touchHandler := func(event dom.Event) {
+		te := event.(*dom.TouchEvent)
+
+		touches := te.Get("touches")
+		if touches.Length() > 0 {
+			t := touches.Index(0)
+
+			if w.mouseMovementCallback != nil {
+				w.mouseMovementCallback(w, t.Get("clientX").Float()-w.cursorPosition[0], t.Get("clientY").Float()-w.cursorPosition[1])
+			}
+
+			w.cursorPosition[0], w.cursorPosition[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
+			if w.cursorPositionCallback != nil {
+				w.cursorPositionCallback(w, w.cursorPosition[0], w.cursorPosition[1])
+			}
+		}
+		w.touches = touches
+
+		te.PreventDefault()
+	}
+	document.AddEventListener("touchstart", false, touchHandler)
+	document.AddEventListener("touchmove", false, touchHandler)
+	document.AddEventListener("touchend", false, touchHandler)
+
 	// Request first animation frame.
 	js.Global.Call("requestAnimationFrame", animationFrame)
 
@@ -115,7 +154,9 @@ type Window struct {
 	cursorPosition [2]float64
 	mouseButton    [3]Action
 
-	mouseButtonCallback MouseButtonCallback
+	cursorPositionCallback CursorPositionCallback
+	mouseMovementCallback  MouseMovementCallback
+	mouseButtonCallback    MouseButtonCallback
 
 	touches js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -134,33 +175,16 @@ func (w *Window) MakeContextCurrent() error {
 type CursorPositionCallback func(w *Window, xpos float64, ypos float64)
 
 func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previous CursorPositionCallback, err error) {
-	document.AddEventListener("mousemove", false, func(event dom.Event) {
-		me := event.(*dom.MouseEvent)
+	w.cursorPositionCallback = cbfun
 
-		w.cursorPosition[0], w.cursorPosition[1] = float64(me.ClientX), float64(me.ClientY)
-		cbfun(w, w.cursorPosition[0], w.cursorPosition[1])
+	// TODO: Handle previous.
+	return nil, nil
+}
 
-		me.PreventDefault()
-	})
+type MouseMovementCallback func(w *Window, xdelta float64, ydelta float64)
 
-	// Hacky mouse-emulation-via-touch.
-	touchHandler := func(event dom.Event) {
-		te := event.(*dom.TouchEvent)
-
-		touches := te.Get("touches")
-		if touches.Length() > 0 {
-			t := touches.Index(0)
-
-			w.cursorPosition[0], w.cursorPosition[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
-			cbfun(w, w.cursorPosition[0], w.cursorPosition[1])
-		}
-		w.touches = touches
-
-		te.PreventDefault()
-	}
-	document.AddEventListener("touchstart", false, touchHandler)
-	document.AddEventListener("touchmove", false, touchHandler)
-	document.AddEventListener("touchend", false, touchHandler)
+func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback, err error) {
+	w.mouseMovementCallback = cbfun
 
 	// TODO: Handle previous.
 	return nil, nil

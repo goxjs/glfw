@@ -75,6 +75,26 @@ func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previo
 	return nil, err
 }
 
+type MouseMovementCallback func(w *Window, xdelta float64, ydelta float64)
+
+var lastMousePos [2]float64 // HACK.
+
+// TODO: For now, this overrides SetCursorPositionCallback; should support both.
+func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback, err error) {
+	lastMousePos[0], lastMousePos[1], _ = w.Window.GetCursorPosition()
+	wrappedCbfun := func(_ *glfw.Window, xpos float64, ypos float64) {
+		xdelta, ydelta := xpos-lastMousePos[0], ypos-lastMousePos[1]
+		lastMousePos[0], lastMousePos[1] = xpos, ypos
+		cbfun(w, xdelta, ydelta)
+	}
+
+	p, err := w.Window.SetCursorPositionCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil, err
+}
+
 type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
 
 func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback, err error) {
