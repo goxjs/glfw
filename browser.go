@@ -271,13 +271,16 @@ func (w *Window) SetInputMode(mode InputMode, value int) error {
 	case Cursor:
 		switch value {
 		case CursorNormal:
+			document.Underlying().Call("exitPointerLock")
 			w.canvas.Style().SetProperty("cursor", "initial", "")
 			return nil
 		case CursorHidden:
+			document.Underlying().Call("exitPointerLock")
 			w.canvas.Style().SetProperty("cursor", "none", "")
 			return nil
 		case CursorDisabled:
-			return errors.New("not yet impl")
+			w.canvas.Underlying().Call("requestPointerLock")
+			return nil
 		default:
 			return ErrInvalidValue
 		}
