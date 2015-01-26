@@ -95,6 +95,48 @@ func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous
 	return nil, err
 }
 
+type KeyCallback func(w *Window, key Key, scancode int, action Action, mods ModifierKey)
+
+func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback, err error) {
+	wrappedCbfun := func(_ *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		cbfun(w, Key(key), scancode, Action(action), ModifierKey(mods))
+	}
+
+	p, err := w.Window.SetKeyCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil, err
+}
+
+type CharCallback func(w *Window, char rune)
+
+func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback, err error) {
+	wrappedCbfun := func(_ *glfw.Window, char rune) {
+		cbfun(w, char)
+	}
+
+	p, err := w.Window.SetCharCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil, err
+}
+
+type ScrollCallback func(w *Window, xoff float64, yoff float64)
+
+func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback, err error) {
+	wrappedCbfun := func(_ *glfw.Window, xoff float64, yoff float64) {
+		cbfun(w, xoff, yoff)
+	}
+
+	p, err := w.Window.SetScrollCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil, err
+}
+
 type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
 
 func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback, err error) {
@@ -146,6 +188,9 @@ type Key glfw.Key
 const (
 	KeyLeftShift  = Key(glfw.KeyLeftShift)
 	KeyRightShift = Key(glfw.KeyRightShift)
+	Key1          = Key(glfw.Key1)
+	Key2          = Key(glfw.Key2)
+	Key3          = Key(glfw.Key3)
 )
 
 type MouseButton glfw.MouseButton

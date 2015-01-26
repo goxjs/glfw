@@ -71,6 +71,58 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		w.Context = gl
 	}
 
+	document.AddEventListener("keydown", false, func(event dom.Event) {
+		if w.keyCallback == nil {
+			return
+		}
+		ke := event.(*dom.KeyboardEvent)
+
+		action := Press
+		if ke.Repeat {
+			action = Repeat
+		}
+
+		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
+
+		switch {
+		case ke.KeyCode == 13: // Enter.
+		case ke.KeyCode == 27: // Escape.
+		case ke.KeyCode == 49:
+			w.keyCallback(w, Key1, -1, action, mods)
+		case ke.KeyCode == 50:
+			w.keyCallback(w, Key2, -1, action, mods)
+		case ke.KeyCode == 51:
+			w.keyCallback(w, Key3, -1, action, mods)
+		default:
+			fmt.Println("Unknown KeyCode:", ke.KeyCode)
+		}
+
+		ke.PreventDefault()
+	})
+	document.AddEventListener("keyup", false, func(event dom.Event) {
+		if w.keyCallback == nil {
+			return
+		}
+		ke := event.(*dom.KeyboardEvent)
+
+		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
+
+		switch {
+		case ke.KeyCode == 13: // Enter.
+		case ke.KeyCode == 27: // Escape.
+		case ke.KeyCode == 49:
+			w.keyCallback(w, Key1, -1, Release, mods)
+		case ke.KeyCode == 50:
+			w.keyCallback(w, Key2, -1, Release, mods)
+		case ke.KeyCode == 51:
+			w.keyCallback(w, Key3, -1, Release, mods)
+		default:
+			fmt.Println("Unknown KeyCode:", ke.KeyCode)
+		}
+
+		ke.PreventDefault()
+	})
+
 	document.AddEventListener("mousedown", false, func(event dom.Event) {
 		me := event.(*dom.MouseEvent)
 		if !(me.Button >= 0 && me.Button <= 2) {
@@ -146,17 +198,24 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	return w, nil
 }
 
+func SwapInterval(interval int) error {
+	// TODO: Implement.
+	return nil
+}
+
 type Window struct {
 	Context *webgl.Context
 
 	canvas *dom.HTMLCanvasElement
 
+	cursorMode     int
 	cursorPosition [2]float64
 	mouseButton    [3]Action
 
 	cursorPositionCallback CursorPositionCallback
 	mouseMovementCallback  MouseMovementCallback
 	mouseButtonCallback    MouseButtonCallback
+	keyCallback            KeyCallback
 
 	touches js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -187,6 +246,29 @@ func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous
 	w.mouseMovementCallback = cbfun
 
 	// TODO: Handle previous.
+	return nil, nil
+}
+
+type KeyCallback func(w *Window, key Key, scancode int, action Action, mods ModifierKey)
+
+func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback, err error) {
+	w.keyCallback = cbfun
+
+	// TODO: Handle previous.
+	return nil, nil
+}
+
+type CharCallback func(w *Window, char rune)
+
+func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback, err error) {
+	// TODO.
+	return nil, nil
+}
+
+type ScrollCallback func(w *Window, xoff float64, yoff float64)
+
+func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback, err error) {
+	// TODO.
 	return nil, nil
 }
 
@@ -284,7 +366,12 @@ func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
 }
 
 func (w *Window) GetInputMode(mode InputMode) (int, error) {
-	return 0, errors.New("not yet impl")
+	switch mode {
+	case Cursor:
+		return w.cursorMode, nil
+	default:
+		return 0, errors.New("not yet impl")
+	}
 }
 
 var ErrInvalidParameter = errors.New("invalid parameter")
@@ -295,14 +382,17 @@ func (w *Window) SetInputMode(mode InputMode, value int) error {
 	case Cursor:
 		switch value {
 		case CursorNormal:
+			w.cursorMode = value
 			document.Underlying().Call("exitPointerLock")
 			w.canvas.Style().SetProperty("cursor", "initial", "")
 			return nil
 		case CursorHidden:
+			w.cursorMode = value
 			document.Underlying().Call("exitPointerLock")
 			w.canvas.Style().SetProperty("cursor", "none", "")
 			return nil
 		case CursorDisabled:
+			w.cursorMode = value
 			w.canvas.Underlying().Call("requestPointerLock")
 			return nil
 		default:
@@ -322,6 +412,9 @@ type Key int
 const (
 	KeyLeftShift  Key = 340
 	KeyRightShift Key = 344
+	Key1          Key = 49
+	Key2          Key = 50
+	Key3          Key = 51
 )
 
 type MouseButton int
