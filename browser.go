@@ -175,7 +175,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		if w.scrollCallback != nil {
-			w.scrollCallback(w, float64(-we.DeltaX), float64(-we.DeltaY))
+			w.scrollCallback(w, -we.DeltaX, -we.DeltaY)
 		}
 
 		we.PreventDefault()
