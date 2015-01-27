@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/webgl"
@@ -166,6 +167,19 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		me.PreventDefault()
 	})
+	document.AddEventListener("wheel", false, func(event dom.Event) {
+		we := event.(*dom.WheelEvent)
+
+		if we.DeltaMode != dom.DeltaPixel {
+			log.Panicln("unexpected WheelEvent.DeltaMode:", we.DeltaMode)
+		}
+
+		if w.scrollCallback != nil {
+			w.scrollCallback(w, float64(-we.DeltaX), float64(-we.DeltaY))
+		}
+
+		we.PreventDefault()
+	})
 
 	// Hacky mouse-emulation-via-touch.
 	touchHandler := func(event dom.Event) {
@@ -216,6 +230,7 @@ type Window struct {
 	mouseMovementCallback  MouseMovementCallback
 	mouseButtonCallback    MouseButtonCallback
 	keyCallback            KeyCallback
+	scrollCallback         ScrollCallback
 
 	touches js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -268,7 +283,9 @@ func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback, err
 type ScrollCallback func(w *Window, xoff float64, yoff float64)
 
 func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback, err error) {
-	// TODO.
+	w.scrollCallback = cbfun
+
+	// TODO: Handle previous.
 	return nil, nil
 }
 
