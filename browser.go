@@ -475,15 +475,10 @@ const (
 
 // Open opens a named asset.
 func Open(name string) (vfs.ReadSeekCloser, error) {
-	req := xhr.NewRequest("GET", name)
-	req.ResponseType = xhr.ArrayBuffer
-
-	err := req.Send(nil)
+	b, err := xhr.Send("GET", name, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	b := js.Global.Get("Uint8Array").New(req.Response).Interface().([]byte)
 
 	return nopCloser{bytes.NewReader(b)}, nil
 }
