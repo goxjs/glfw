@@ -11,6 +11,6 @@ const (
 	Samples   = Hint(glfw.Samples)
 )
 
-func WindowHint(target Hint, hint int) error {
-	return glfw.WindowHint(glfw.Hint(target), hint)
+func WindowHint(target Hint, hint int) {
+	glfw.WindowHint(glfw.Hint(target), hint)
 }

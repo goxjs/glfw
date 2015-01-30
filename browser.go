@@ -157,9 +157,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	document.AddEventListener("mousemove", false, func(event dom.Event) {
 		me := event.(*dom.MouseEvent)
 
-		w.cursorPosition[0], w.cursorPosition[1] = float64(me.ClientX), float64(me.ClientY)
-		if w.cursorPositionCallback != nil {
-			w.cursorPositionCallback(w, w.cursorPosition[0], w.cursorPosition[1])
+		w.cursorPos[0], w.cursorPos[1] = float64(me.ClientX), float64(me.ClientY)
+		if w.cursorPosCallback != nil {
+			w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
 		}
 		if w.mouseMovementCallback != nil {
 			w.mouseMovementCallback(w, float64(me.MovementX), float64(me.MovementY))
@@ -190,12 +190,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			t := touches.Index(0)
 
 			if w.mouseMovementCallback != nil {
-				w.mouseMovementCallback(w, t.Get("clientX").Float()-w.cursorPosition[0], t.Get("clientY").Float()-w.cursorPosition[1])
+				w.mouseMovementCallback(w, t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
 			}
 
-			w.cursorPosition[0], w.cursorPosition[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
-			if w.cursorPositionCallback != nil {
-				w.cursorPositionCallback(w, w.cursorPosition[0], w.cursorPosition[1])
+			w.cursorPos[0], w.cursorPos[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
+			if w.cursorPosCallback != nil {
+				w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
 			}
 		}
 		w.touches = touches
@@ -222,15 +222,15 @@ type Window struct {
 
 	canvas *dom.HTMLCanvasElement
 
-	cursorMode     int
-	cursorPosition [2]float64
-	mouseButton    [3]Action
+	cursorMode  int
+	cursorPos   [2]float64
+	mouseButton [3]Action
 
-	cursorPositionCallback CursorPositionCallback
-	mouseMovementCallback  MouseMovementCallback
-	mouseButtonCallback    MouseButtonCallback
-	keyCallback            KeyCallback
-	scrollCallback         ScrollCallback
+	cursorPosCallback     CursorPosCallback
+	mouseMovementCallback MouseMovementCallback
+	mouseButtonCallback   MouseButtonCallback
+	keyCallback           KeyCallback
+	scrollCallback        ScrollCallback
 
 	touches js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -246,10 +246,10 @@ func (w *Window) MakeContextCurrent() error {
 	return nil
 }
 
-type CursorPositionCallback func(w *Window, xpos float64, ypos float64)
+type CursorPosCallback func(w *Window, xpos float64, ypos float64)
 
-func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previous CursorPositionCallback, err error) {
-	w.cursorPositionCallback = cbfun
+func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback, err error) {
+	w.cursorPosCallback = cbfun
 
 	// TODO: Handle previous.
 	return nil, nil
@@ -319,19 +319,19 @@ func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (prev
 	return nil, nil
 }
 
-func (w *Window) GetSize() (width, height int, err error) {
+func (w *Window) GetSize() (width, height int) {
 	// TODO: See if dpi adjustments need to be made.
 	fmt.Println("Window.GetSize:", w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
 
-	return w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height, nil
+	return w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height
 }
 
-func (w *Window) GetFramebufferSize() (width, height int, err error) {
-	return w.canvas.Width, w.canvas.Height, nil
+func (w *Window) GetFramebufferSize() (width, height int) {
+	return w.canvas.Width, w.canvas.Height
 }
 
-func (w *Window) ShouldClose() (bool, error) {
-	return false, nil
+func (w *Window) ShouldClose() bool {
+	return false
 }
 
 func (w *Window) SwapBuffers() error {
@@ -349,18 +349,18 @@ func animationFrame() {
 	}()
 }
 
-func (w *Window) GetCursorPosition() (x, y float64, err error) {
-	return w.cursorPosition[0], w.cursorPosition[1], nil
+func (w *Window) GetCursorPos() (x, y float64) {
+	return w.cursorPos[0], w.cursorPos[1]
 }
 
-func (w *Window) GetKey(key Key) (Action, error) {
+func (w *Window) GetKey(key Key) Action {
 	// TODO: Implement.
-	return Release, nil
+	return Release
 }
 
-func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
+func (w *Window) GetMouseButton(button MouseButton) Action {
 	if !(button >= 0 && button <= 2) {
-		return 0, fmt.Errorf("button is out of range: %v", button)
+		panic(fmt.Errorf("button is out of range: %v", button))
 	}
 
 	// Hacky mouse-emulation-via-touch.
@@ -368,59 +368,59 @@ func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
 		switch button {
 		case MouseButton1:
 			if w.touches.Length() == 1 || w.touches.Length() == 3 {
-				return Press, nil
+				return Press
 			}
 		case MouseButton2:
 			if w.touches.Length() == 2 || w.touches.Length() == 3 {
-				return Press, nil
+				return Press
 			}
 		}
 
-		return Release, nil
+		return Release
 	}
 
-	return w.mouseButton[button], nil
+	return w.mouseButton[button]
 }
 
-func (w *Window) GetInputMode(mode InputMode) (int, error) {
+func (w *Window) GetInputMode(mode InputMode) int {
 	switch mode {
-	case Cursor:
-		return w.cursorMode, nil
+	case CursorMode:
+		return w.cursorMode
 	default:
-		return 0, errors.New("not yet impl")
+		panic(errors.New("not yet impl"))
 	}
 }
 
 var ErrInvalidParameter = errors.New("invalid parameter")
 var ErrInvalidValue = errors.New("invalid value")
 
-func (w *Window) SetInputMode(mode InputMode, value int) error {
+func (w *Window) SetInputMode(mode InputMode, value int) {
 	switch mode {
-	case Cursor:
+	case CursorMode:
 		switch value {
 		case CursorNormal:
 			w.cursorMode = value
 			document.Underlying().Call("exitPointerLock")
 			w.canvas.Style().SetProperty("cursor", "initial", "")
-			return nil
+			return
 		case CursorHidden:
 			w.cursorMode = value
 			document.Underlying().Call("exitPointerLock")
 			w.canvas.Style().SetProperty("cursor", "none", "")
-			return nil
+			return
 		case CursorDisabled:
 			w.cursorMode = value
 			w.canvas.Underlying().Call("requestPointerLock")
-			return nil
+			return
 		default:
-			return ErrInvalidValue
+			panic(ErrInvalidValue)
 		}
-	case StickyKeys:
-		return errors.New("not impl")
-	case StickyMouseButtons:
-		return errors.New("not impl")
+	case StickyKeysMode:
+		panic(errors.New("not impl"))
+	case StickyMouseButtonsMode:
+		panic(errors.New("not impl"))
 	default:
-		return ErrInvalidParameter
+		panic(ErrInvalidParameter)
 	}
 }
 
@@ -453,9 +453,9 @@ const (
 type InputMode int
 
 const (
-	Cursor InputMode = iota
-	StickyKeys
-	StickyMouseButtons
+	CursorMode InputMode = iota
+	StickyKeysMode
+	StickyMouseButtonsMode
 )
 
 const (

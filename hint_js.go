@@ -11,7 +11,6 @@ const (
 	Samples   Hint = 0x0002100D
 )
 
-func WindowHint(target Hint, hint int) error {
+func WindowHint(target Hint, hint int) {
 	hints[target] = hint
-	return nil
 }

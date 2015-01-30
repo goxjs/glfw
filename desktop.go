@@ -17,8 +17,8 @@ func Init() error {
 	return glfw.Init()
 }
 
-func Terminate() error {
-	return glfw.Terminate()
+func Terminate() {
+	glfw.Terminate()
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
@@ -43,8 +43,8 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	return window, err
 }
 
-func SwapInterval(interval int) error {
-	return glfw.SwapInterval(interval)
+func SwapInterval(interval int) {
+	glfw.SwapInterval(interval)
 }
 
 type Window struct {
@@ -57,130 +57,130 @@ type Monitor struct {
 	*glfw.Monitor
 }
 
-func PollEvents() error {
-	return glfw.PollEvents()
+func PollEvents() {
+	glfw.PollEvents()
 }
 
-type CursorPositionCallback func(w *Window, xpos float64, ypos float64)
+type CursorPosCallback func(w *Window, xpos float64, ypos float64)
 
-func (w *Window) SetCursorPositionCallback(cbfun CursorPositionCallback) (previous CursorPositionCallback, err error) {
+func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback) {
 	wrappedCbfun := func(_ *glfw.Window, xpos float64, ypos float64) {
 		cbfun(w, xpos, ypos)
 	}
 
-	p, err := w.Window.SetCursorPositionCallback(wrappedCbfun)
+	p := w.Window.SetCursorPosCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil
 }
 
 type MouseMovementCallback func(w *Window, xdelta float64, ydelta float64)
 
 var lastMousePos [2]float64 // HACK.
 
-// TODO: For now, this overrides SetCursorPositionCallback; should support both.
-func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback, err error) {
-	lastMousePos[0], lastMousePos[1], _ = w.Window.GetCursorPosition()
+// TODO: For now, this overrides SetCursorPosCallback; should support both.
+func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback) {
+	lastMousePos[0], lastMousePos[1] = w.Window.GetCursorPos()
 	wrappedCbfun := func(_ *glfw.Window, xpos float64, ypos float64) {
 		xdelta, ydelta := xpos-lastMousePos[0], ypos-lastMousePos[1]
 		lastMousePos[0], lastMousePos[1] = xpos, ypos
 		cbfun(w, xdelta, ydelta)
 	}
 
-	p, err := w.Window.SetCursorPositionCallback(wrappedCbfun)
+	p := w.Window.SetCursorPosCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil
 }
 
 type KeyCallback func(w *Window, key Key, scancode int, action Action, mods ModifierKey)
 
-func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback, err error) {
+func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
 	wrappedCbfun := func(_ *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 		cbfun(w, Key(key), scancode, Action(action), ModifierKey(mods))
 	}
 
-	p, err := w.Window.SetKeyCallback(wrappedCbfun)
+	p := w.Window.SetKeyCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil
 }
 
 type CharCallback func(w *Window, char rune)
 
-func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback, err error) {
+func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
 	wrappedCbfun := func(_ *glfw.Window, char rune) {
 		cbfun(w, char)
 	}
 
-	p, err := w.Window.SetCharCallback(wrappedCbfun)
+	p := w.Window.SetCharCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil
 }
 
 type ScrollCallback func(w *Window, xoff float64, yoff float64)
 
-func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback, err error) {
+func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback) {
 	wrappedCbfun := func(_ *glfw.Window, xoff float64, yoff float64) {
 		cbfun(w, xoff, yoff)
 	}
 
-	p, err := w.Window.SetScrollCallback(wrappedCbfun)
+	p := w.Window.SetScrollCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil
 }
 
 type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
 
-func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback, err error) {
+func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback) {
 	wrappedCbfun := func(_ *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 		cbfun(w, MouseButton(button), Action(action), ModifierKey(mods))
 	}
 
-	p, err := w.Window.SetMouseButtonCallback(wrappedCbfun)
+	p := w.Window.SetMouseButtonCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil
 }
 
 type FramebufferSizeCallback func(w *Window, width int, height int)
 
-func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback, err error) {
+func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback) {
 	wrappedCbfun := func(_ *glfw.Window, width int, height int) {
 		cbfun(w, width, height)
 	}
 
-	p, err := w.Window.SetFramebufferSizeCallback(wrappedCbfun)
+	p := w.Window.SetFramebufferSizeCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.
-	return nil, err
+	return nil
 }
 
-func (w *Window) GetKey(key Key) (Action, error) {
-	a, err := w.Window.GetKey(glfw.Key(key))
-	return Action(a), err
+func (w *Window) GetKey(key Key) Action {
+	a := w.Window.GetKey(glfw.Key(key))
+	return Action(a)
 }
 
-func (w *Window) GetMouseButton(button MouseButton) (Action, error) {
-	a, err := w.Window.GetMouseButton(glfw.MouseButton(button))
-	return Action(a), err
+func (w *Window) GetMouseButton(button MouseButton) Action {
+	a := w.Window.GetMouseButton(glfw.MouseButton(button))
+	return Action(a)
 }
 
-func (w *Window) GetInputMode(mode InputMode) (int, error) {
+func (w *Window) GetInputMode(mode InputMode) int {
 	return w.Window.GetInputMode(glfw.InputMode(mode))
 }
 
-func (w *Window) SetInputMode(mode InputMode, value int) error {
-	return w.Window.SetInputMode(glfw.InputMode(mode), value)
+func (w *Window) SetInputMode(mode InputMode, value int) {
+	w.Window.SetInputMode(glfw.InputMode(mode), value)
 }
 
 type Key glfw.Key
@@ -211,9 +211,9 @@ const (
 type InputMode int
 
 const (
-	Cursor             = InputMode(glfw.Cursor)
-	StickyKeys         = InputMode(glfw.StickyKeys)
-	StickyMouseButtons = InputMode(glfw.StickyMouseButtons)
+	CursorMode             = InputMode(glfw.CursorMode)
+	StickyKeysMode         = InputMode(glfw.StickyKeysMode)
+	StickyMouseButtonsMode = InputMode(glfw.StickyMouseButtonsMode)
 )
 
 const (
