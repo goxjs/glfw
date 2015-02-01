@@ -29,6 +29,8 @@ func Terminate() error {
 }
 
 func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Window, error) {
+	// THINK: Consider https://developer.mozilla.org/en-US/docs/Web/API/Window.open?
+
 	// HACK: Go fullscreen?
 	width := dom.GetWindow().InnerWidth()
 	height := dom.GetWindow().InnerHeight()
@@ -85,15 +87,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
-		switch {
-		case ke.KeyCode == 13: // Enter.
-		case ke.KeyCode == 27: // Escape.
-		case ke.KeyCode == 49:
-			w.keyCallback(w, Key1, -1, action, mods)
-		case ke.KeyCode == 50:
-			w.keyCallback(w, Key2, -1, action, mods)
-		case ke.KeyCode == 51:
-			w.keyCallback(w, Key3, -1, action, mods)
+		switch key := Key(ke.KeyCode); key {
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+			w.keyCallback(w, key, -1, action, mods)
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
 		}
@@ -108,15 +104,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
-		switch {
-		case ke.KeyCode == 13: // Enter.
-		case ke.KeyCode == 27: // Escape.
-		case ke.KeyCode == 49:
-			w.keyCallback(w, Key1, -1, Release, mods)
-		case ke.KeyCode == 50:
-			w.keyCallback(w, Key2, -1, Release, mods)
-		case ke.KeyCode == 51:
-			w.keyCallback(w, Key3, -1, Release, mods)
+		switch key := Key(ke.KeyCode); key {
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+			w.keyCallback(w, key, -1, Release, mods)
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
 		}
@@ -334,6 +324,12 @@ func (w *Window) ShouldClose() bool {
 	return false
 }
 
+func (w *Window) SetShouldClose(value bool) {
+	// TODO: Implement.
+	// THINK: What should happen in the browser if we're told to "close" the window. Do we destroy/remove the canvas? Or nothing?
+	//        Perhaps https://developer.mozilla.org/en-US/docs/Web/API/Window.close is relevant.
+}
+
 func (w *Window) SwapBuffers() error {
 	<-animationFrameChan
 	js.Global.Call("requestAnimationFrame", animationFrame)
@@ -432,6 +428,19 @@ const (
 	Key1          Key = 49
 	Key2          Key = 50
 	Key3          Key = 51
+	KeyEnter      Key = 13
+	KeyEscape     Key = 27
+	KeyF1         Key = 112
+	KeyF2         Key = 113
+	KeyLeft       Key = 37
+	KeyRight      Key = 39
+	KeyQ          Key = 81
+	KeyW          Key = 87
+	KeyE          Key = 69
+	KeyA          Key = 65
+	KeyS          Key = 83
+	KeyD          Key = 68
+	KeySpace      Key = 32
 )
 
 type MouseButton int
