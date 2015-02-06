@@ -75,7 +75,7 @@ func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorP
 	return nil
 }
 
-type MouseMovementCallback func(w *Window, xdelta float64, ydelta float64)
+type MouseMovementCallback func(w *Window, xpos float64, ypos float64, xdelta float64, ydelta float64)
 
 var lastMousePos [2]float64 // HACK.
 
@@ -85,7 +85,7 @@ func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous
 	wrappedCbfun := func(_ *glfw.Window, xpos float64, ypos float64) {
 		xdelta, ydelta := xpos-lastMousePos[0], ypos-lastMousePos[1]
 		lastMousePos[0], lastMousePos[1] = xpos, ypos
-		cbfun(w, xdelta, ydelta)
+		cbfun(w, xpos, ypos, xdelta, ydelta)
 	}
 
 	p := w.Window.SetCursorPosCallback(wrappedCbfun)

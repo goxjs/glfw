@@ -152,7 +152,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
 		}
 		if w.mouseMovementCallback != nil {
-			w.mouseMovementCallback(w, float64(me.MovementX), float64(me.MovementY))
+			w.mouseMovementCallback(w, w.cursorPos[0], w.cursorPos[1], float64(me.MovementX), float64(me.MovementY))
 		}
 
 		me.PreventDefault()
@@ -180,7 +180,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			t := touches.Index(0)
 
 			if w.mouseMovementCallback != nil {
-				w.mouseMovementCallback(w, t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
+				w.mouseMovementCallback(w, t.Get("clientX").Float(), t.Get("clientY").Float(), t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
 			}
 
 			w.cursorPos[0], w.cursorPos[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
@@ -245,7 +245,7 @@ func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorP
 	return nil, nil
 }
 
-type MouseMovementCallback func(w *Window, xdelta float64, ydelta float64)
+type MouseMovementCallback func(w *Window, xpos float64, ypos float64, xdelta float64, ydelta float64)
 
 func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback, err error) {
 	w.mouseMovementCallback = cbfun
