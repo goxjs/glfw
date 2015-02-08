@@ -10,7 +10,7 @@ import (
 	"log"
 
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/shurcooL/webgl"
+	"github.com/shurcooL/gogl"
 	"golang.org/x/tools/godoc/vfs"
 	"honnef.co/go/js/dom"
 	"honnef.co/go/js/xhr"
@@ -62,11 +62,11 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 	// Create GL context.
 	{
-		attrs := webgl.DefaultAttributes()
+		attrs := gogl.DefaultAttributes()
 		attrs.Alpha = (hints[AlphaBits] > 0)
 		attrs.Antialias = (hints[Samples] > 0)
 
-		gl, err := webgl.NewContext(w.canvas.Underlying(), attrs)
+		gl, err := gogl.NewContext(w.canvas.Underlying(), attrs)
 		if err != nil {
 			return nil, err
 		}
@@ -208,7 +208,7 @@ func SwapInterval(interval int) error {
 }
 
 type Window struct {
-	Context *webgl.Context
+	Context *gogl.Context
 
 	canvas *dom.HTMLCanvasElement
 

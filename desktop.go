@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	glfw "github.com/shurcooL/glfw3"
-	"github.com/shurcooL/webgl"
+	"github.com/shurcooL/gogl"
 	"golang.org/x/tools/godoc/vfs"
 )
 
@@ -38,7 +38,7 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 
 	window := &Window{Window: w}
 
-	window.Context = webgl.NewContext()
+	window.Context = gogl.NewContext()
 
 	return window, err
 }
@@ -50,7 +50,7 @@ func SwapInterval(interval int) {
 type Window struct {
 	*glfw.Window
 
-	Context *webgl.Context
+	Context *gogl.Context
 }
 
 type Monitor struct {
