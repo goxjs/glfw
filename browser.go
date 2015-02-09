@@ -88,7 +88,14 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
 		switch key := Key(ke.KeyCode); key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+			// Extend slice if needed.
+			neededSize := int(key) + 1
+			if neededSize > len(w.keys) {
+				w.keys = append(w.keys, make([]Action, neededSize-len(w.keys))...)
+			}
+			w.keys[key] = action
+
 			w.keyCallback(w, key, -1, action, mods)
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
@@ -105,7 +112,14 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
 		switch key := Key(ke.KeyCode); key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+			// Extend slice if needed.
+			neededSize := int(key) + 1
+			if neededSize > len(w.keys) {
+				w.keys = append(w.keys, make([]Action, neededSize-len(w.keys))...)
+			}
+			w.keys[key] = Release
+
 			w.keyCallback(w, key, -1, Release, mods)
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
@@ -215,6 +229,8 @@ type Window struct {
 	cursorMode  int
 	cursorPos   [2]float64
 	mouseButton [3]Action
+
+	keys []Action
 
 	cursorPosCallback     CursorPosCallback
 	mouseMovementCallback MouseMovementCallback
@@ -350,8 +366,10 @@ func (w *Window) GetCursorPos() (x, y float64) {
 }
 
 func (w *Window) GetKey(key Key) Action {
-	// TODO: Implement.
-	return Release
+	if int(key) >= len(w.keys) {
+		return Release
+	}
+	return w.keys[key]
 }
 
 func (w *Window) GetMouseButton(button MouseButton) Action {
@@ -434,6 +452,8 @@ const (
 	KeyF2         Key = 113
 	KeyLeft       Key = 37
 	KeyRight      Key = 39
+	KeyUp         Key = 38
+	KeyDown       Key = 40
 	KeyQ          Key = 81
 	KeyW          Key = 87
 	KeyE          Key = 69

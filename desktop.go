@@ -197,6 +197,8 @@ const (
 	KeyF2         = Key(glfw.KeyF2)
 	KeyLeft       = Key(glfw.KeyLeft)
 	KeyRight      = Key(glfw.KeyRight)
+	KeyUp         = Key(glfw.KeyUp)
+	KeyDown       = Key(glfw.KeyDown)
 	KeyQ          = Key(glfw.KeyQ)
 	KeyW          = Key(glfw.KeyW)
 	KeyE          = Key(glfw.KeyE)
