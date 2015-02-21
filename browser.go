@@ -238,7 +238,7 @@ type Window struct {
 	keyCallback           KeyCallback
 	scrollCallback        ScrollCallback
 
-	touches js.Object // Hacky mouse-emulation-via-touch.
+	touches *js.Object // Hacky mouse-emulation-via-touch.
 }
 
 type Monitor struct {
