@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime"
 
-	glfw "github.com/shurcooL/glfw3"
+	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/shurcooL/gogl"
 	"golang.org/x/tools/godoc/vfs"
 )
