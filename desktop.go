@@ -11,9 +11,11 @@ import (
 	"golang.org/x/tools/godoc/vfs"
 )
 
-func Init() error {
+func init() {
 	runtime.LockOSThread()
+}
 
+func Init() error {
 	return glfw.Init()
 }
 
