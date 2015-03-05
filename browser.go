@@ -174,12 +174,19 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	document.AddEventListener("wheel", false, func(event dom.Event) {
 		we := event.(*dom.WheelEvent)
 
-		if we.DeltaMode != dom.DeltaPixel {
-			log.Panicln("unexpected WheelEvent.DeltaMode:", we.DeltaMode)
+		var multiplier float64
+		switch we.DeltaMode {
+		case dom.DeltaPixel:
+			multiplier = 0.1
+		case dom.DeltaLine:
+			multiplier = 1
+		default:
+			log.Println("unsupported WheelEvent.DeltaMode:", we.DeltaMode)
+			multiplier = 1
 		}
 
 		if w.scrollCallback != nil {
-			w.scrollCallback(w, -we.DeltaX, -we.DeltaY)
+			w.scrollCallback(w, -we.DeltaX*multiplier, -we.DeltaY*multiplier)
 		}
 
 		we.PreventDefault()
