@@ -75,17 +75,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	}
 
 	document.AddEventListener("keydown", false, func(event dom.Event) {
-		if w.keyCallback == nil {
-			return
-		}
 		ke := event.(*dom.KeyboardEvent)
 
 		action := Press
 		if ke.Repeat {
 			action = Repeat
 		}
-
-		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
 		switch key := Key(ke.KeyCode); key {
 		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
@@ -96,7 +91,11 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			}
 			w.keys[key] = action
 
-			w.keyCallback(w, key, -1, action, mods)
+			if w.keyCallback != nil {
+				mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
+
+				w.keyCallback(w, key, -1, action, mods)
+			}
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
 		}
@@ -104,12 +103,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		ke.PreventDefault()
 	})
 	document.AddEventListener("keyup", false, func(event dom.Event) {
-		if w.keyCallback == nil {
-			return
-		}
 		ke := event.(*dom.KeyboardEvent)
-
-		mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
 		switch key := Key(ke.KeyCode); key {
 		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
@@ -120,7 +114,11 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			}
 			w.keys[key] = Release
 
-			w.keyCallback(w, key, -1, Release, mods)
+			if w.keyCallback != nil {
+				mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
+
+				w.keyCallback(w, key, -1, Release, mods)
+			}
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
 		}
