@@ -188,26 +188,113 @@ func (w *Window) SetInputMode(mode InputMode, value int) {
 type Key glfw.Key
 
 const (
-	KeyLeftShift  = Key(glfw.KeyLeftShift)
-	KeyRightShift = Key(glfw.KeyRightShift)
-	Key1          = Key(glfw.Key1)
-	Key2          = Key(glfw.Key2)
-	Key3          = Key(glfw.Key3)
-	KeyEnter      = Key(glfw.KeyEnter)
-	KeyEscape     = Key(glfw.KeyEscape)
-	KeyF1         = Key(glfw.KeyF1)
-	KeyF2         = Key(glfw.KeyF2)
-	KeyLeft       = Key(glfw.KeyLeft)
-	KeyRight      = Key(glfw.KeyRight)
-	KeyUp         = Key(glfw.KeyUp)
-	KeyDown       = Key(glfw.KeyDown)
-	KeyQ          = Key(glfw.KeyQ)
-	KeyW          = Key(glfw.KeyW)
-	KeyE          = Key(glfw.KeyE)
-	KeyA          = Key(glfw.KeyA)
-	KeyS          = Key(glfw.KeyS)
-	KeyD          = Key(glfw.KeyD)
-	KeySpace      = Key(glfw.KeySpace)
+	KeySpace        = Key(glfw.KeySpace)
+	KeyApostrophe   = Key(glfw.KeyApostrophe)
+	KeyComma        = Key(glfw.KeyComma)
+	KeyMinus        = Key(glfw.KeyMinus)
+	KeyPeriod       = Key(glfw.KeyPeriod)
+	KeySlash        = Key(glfw.KeySlash)
+	Key0            = Key(glfw.Key0)
+	Key1            = Key(glfw.Key1)
+	Key2            = Key(glfw.Key2)
+	Key3            = Key(glfw.Key3)
+	Key4            = Key(glfw.Key4)
+	Key5            = Key(glfw.Key5)
+	Key6            = Key(glfw.Key6)
+	Key7            = Key(glfw.Key7)
+	Key8            = Key(glfw.Key8)
+	Key9            = Key(glfw.Key9)
+	KeySemicolon    = Key(glfw.KeySemicolon)
+	KeyEqual        = Key(glfw.KeyEqual)
+	KeyA            = Key(glfw.KeyA)
+	KeyB            = Key(glfw.KeyB)
+	KeyC            = Key(glfw.KeyC)
+	KeyD            = Key(glfw.KeyD)
+	KeyE            = Key(glfw.KeyE)
+	KeyF            = Key(glfw.KeyF)
+	KeyG            = Key(glfw.KeyG)
+	KeyH            = Key(glfw.KeyH)
+	KeyI            = Key(glfw.KeyI)
+	KeyJ            = Key(glfw.KeyJ)
+	KeyK            = Key(glfw.KeyK)
+	KeyL            = Key(glfw.KeyL)
+	KeyM            = Key(glfw.KeyM)
+	KeyN            = Key(glfw.KeyN)
+	KeyO            = Key(glfw.KeyO)
+	KeyP            = Key(glfw.KeyP)
+	KeyQ            = Key(glfw.KeyQ)
+	KeyR            = Key(glfw.KeyR)
+	KeyS            = Key(glfw.KeyS)
+	KeyT            = Key(glfw.KeyT)
+	KeyU            = Key(glfw.KeyU)
+	KeyV            = Key(glfw.KeyV)
+	KeyW            = Key(glfw.KeyW)
+	KeyX            = Key(glfw.KeyX)
+	KeyY            = Key(glfw.KeyY)
+	KeyZ            = Key(glfw.KeyZ)
+	KeyLeftBracket  = Key(glfw.KeyLeftBracket)
+	KeyBackslash    = Key(glfw.KeyBackslash)
+	KeyRightBracket = Key(glfw.KeyRightBracket)
+	KeyGraveAccent  = Key(glfw.KeyGraveAccent)
+	KeyWorld1       = Key(glfw.KeyWorld1)
+	KeyWorld2       = Key(glfw.KeyWorld2)
+	KeyEscape       = Key(glfw.KeyEscape)
+	KeyEnter        = Key(glfw.KeyEnter)
+	KeyTab          = Key(glfw.KeyTab)
+	KeyBackspace    = Key(glfw.KeyBackspace)
+	KeyInsert       = Key(glfw.KeyInsert)
+	KeyDelete       = Key(glfw.KeyDelete)
+	KeyRight        = Key(glfw.KeyRight)
+	KeyLeft         = Key(glfw.KeyLeft)
+	KeyDown         = Key(glfw.KeyDown)
+	KeyUp           = Key(glfw.KeyUp)
+	KeyPageUp       = Key(glfw.KeyPageUp)
+	KeyPageDown     = Key(glfw.KeyPageDown)
+	KeyHome         = Key(glfw.KeyHome)
+	KeyEnd          = Key(glfw.KeyEnd)
+	KeyCapsLock     = Key(glfw.KeyCapsLock)
+	KeyScrollLock   = Key(glfw.KeyScrollLock)
+	KeyNumLock      = Key(glfw.KeyNumLock)
+	KeyPrintScreen  = Key(glfw.KeyPrintScreen)
+	KeyPause        = Key(glfw.KeyPause)
+	KeyF1           = Key(glfw.KeyF1)
+	KeyF2           = Key(glfw.KeyF2)
+	KeyF3           = Key(glfw.KeyF3)
+	KeyF4           = Key(glfw.KeyF4)
+	KeyF5           = Key(glfw.KeyF5)
+	KeyF6           = Key(glfw.KeyF6)
+	KeyF7           = Key(glfw.KeyF7)
+	KeyF8           = Key(glfw.KeyF8)
+	KeyF9           = Key(glfw.KeyF9)
+	KeyF10          = Key(glfw.KeyF10)
+	KeyF11          = Key(glfw.KeyF11)
+	KeyF12          = Key(glfw.KeyF12)
+	KeyKP0          = Key(glfw.KeyKP0)
+	KeyKP1          = Key(glfw.KeyKP1)
+	KeyKP2          = Key(glfw.KeyKP2)
+	KeyKP3          = Key(glfw.KeyKP3)
+	KeyKP4          = Key(glfw.KeyKP4)
+	KeyKP5          = Key(glfw.KeyKP5)
+	KeyKP6          = Key(glfw.KeyKP6)
+	KeyKP7          = Key(glfw.KeyKP7)
+	KeyKP8          = Key(glfw.KeyKP8)
+	KeyKP9          = Key(glfw.KeyKP9)
+	KeyKPDecimal    = Key(glfw.KeyKPDecimal)
+	KeyKPDivide     = Key(glfw.KeyKPDivide)
+	KeyKPMultiply   = Key(glfw.KeyKPMultiply)
+	KeyKPSubtract   = Key(glfw.KeyKPSubtract)
+	KeyKPAdd        = Key(glfw.KeyKPAdd)
+	KeyKPEnter      = Key(glfw.KeyKPEnter)
+	KeyKPEqual      = Key(glfw.KeyKPEqual)
+	KeyLeftShift    = Key(glfw.KeyLeftShift)
+	KeyLeftControl  = Key(glfw.KeyLeftControl)
+	KeyLeftAlt      = Key(glfw.KeyLeftAlt)
+	KeyLeftSuper    = Key(glfw.KeyLeftSuper)
+	KeyRightShift   = Key(glfw.KeyRightShift)
+	KeyRightControl = Key(glfw.KeyRightControl)
+	KeyRightAlt     = Key(glfw.KeyRightAlt)
+	KeyRightSuper   = Key(glfw.KeyRightSuper)
+	KeyMenu         = Key(glfw.KeyMenu)
 )
 
 type MouseButton glfw.MouseButton
@@ -215,6 +302,11 @@ type MouseButton glfw.MouseButton
 const (
 	MouseButton1 = MouseButton(glfw.MouseButton1)
 	MouseButton2 = MouseButton(glfw.MouseButton2)
+	MouseButton3 = MouseButton(glfw.MouseButton3)
+
+	MouseButtonLeft   = MouseButton(glfw.MouseButtonLeft)
+	MouseButtonRight  = MouseButton(glfw.MouseButtonRight)
+	MouseButtonMiddle = MouseButton(glfw.MouseButtonMiddle)
 )
 
 type Action glfw.Action
@@ -253,4 +345,88 @@ const (
 // For now, assets are read directly from the current working directory.
 func Open(name string) (vfs.ReadSeekCloser, error) {
 	return os.Open(name)
+}
+
+// ---
+
+func WaitEvents() {
+	glfw.WaitEvents()
+}
+
+func PostEmptyEvent() {
+	glfw.PostEmptyEvent()
+}
+
+func DefaultWindowHints() {
+	glfw.DefaultWindowHints()
+}
+
+type CloseCallback func(w *Window)
+
+func (w *Window) SetCloseCallback(cbfun CloseCallback) (previous CloseCallback) {
+	wrappedCbfun := func(_ *glfw.Window) {
+		cbfun(w)
+	}
+
+	p := w.Window.SetCloseCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type RefreshCallback func(w *Window)
+
+func (w *Window) SetRefreshCallback(cbfun RefreshCallback) (previous RefreshCallback) {
+	wrappedCbfun := func(_ *glfw.Window) {
+		cbfun(w)
+	}
+
+	p := w.Window.SetRefreshCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type SizeCallback func(w *Window, width int, height int)
+
+func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
+	wrappedCbfun := func(_ *glfw.Window, width int, height int) {
+		cbfun(w, width, height)
+	}
+
+	p := w.Window.SetSizeCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type CursorEnterCallback func(w *Window, entered bool)
+
+func (w *Window) SetCursorEnterCallback(cbfun CursorEnterCallback) (previous CursorEnterCallback) {
+	wrappedCbfun := func(_ *glfw.Window, entered bool) {
+		cbfun(w, entered)
+	}
+
+	p := w.Window.SetCursorEnterCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type CharModsCallback func(w *Window, char rune, mods ModifierKey)
+
+func (w *Window) SetCharModsCallback(cbfun CharModsCallback) (previous CharModsCallback) {
+	wrappedCbfun := func(_ *glfw.Window, char rune, mods glfw.ModifierKey) {
+		cbfun(w, char, ModifierKey(mods))
+	}
+
+	p := w.Window.SetCharModsCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
 }

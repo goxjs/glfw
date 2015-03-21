@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"runtime"
 
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/gogl"
@@ -259,59 +260,59 @@ func (w *Window) MakeContextCurrent() error {
 
 type CursorPosCallback func(w *Window, xpos float64, ypos float64)
 
-func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback, err error) {
+func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback) {
 	w.cursorPosCallback = cbfun
 
 	// TODO: Handle previous.
-	return nil, nil
+	return nil
 }
 
 type MouseMovementCallback func(w *Window, xpos float64, ypos float64, xdelta float64, ydelta float64)
 
-func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback, err error) {
+func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback) {
 	w.mouseMovementCallback = cbfun
 
 	// TODO: Handle previous.
-	return nil, nil
+	return nil
 }
 
 type KeyCallback func(w *Window, key Key, scancode int, action Action, mods ModifierKey)
 
-func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback, err error) {
+func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
 	w.keyCallback = cbfun
 
 	// TODO: Handle previous.
-	return nil, nil
+	return nil
 }
 
 type CharCallback func(w *Window, char rune)
 
-func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback, err error) {
+func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
 	// TODO.
-	return nil, nil
+	return nil
 }
 
 type ScrollCallback func(w *Window, xoff float64, yoff float64)
 
-func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback, err error) {
+func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback) {
 	w.scrollCallback = cbfun
 
 	// TODO: Handle previous.
-	return nil, nil
+	return nil
 }
 
 type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
 
-func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback, err error) {
+func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback) {
 	w.mouseButtonCallback = cbfun
 
 	// TODO: Handle previous.
-	return nil, nil
+	return nil
 }
 
 type FramebufferSizeCallback func(w *Window, width int, height int)
 
-func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback, err error) {
+func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback) {
 	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
 		// HACK: Go fullscreen?
 		width := dom.GetWindow().InnerWidth()
@@ -327,7 +328,7 @@ func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (prev
 	})
 
 	// TODO: Handle previous.
-	return nil, nil
+	return nil
 }
 
 func (w *Window) GetSize() (width, height int) {
@@ -446,26 +447,113 @@ func (w *Window) SetInputMode(mode InputMode, value int) {
 type Key int
 
 const (
-	KeyLeftShift  Key = 340
-	KeyRightShift Key = 344
-	Key1          Key = 49
-	Key2          Key = 50
-	Key3          Key = 51
-	KeyEnter      Key = 13
-	KeyEscape     Key = 27
-	KeyF1         Key = 112
-	KeyF2         Key = 113
-	KeyLeft       Key = 37
-	KeyRight      Key = 39
-	KeyUp         Key = 38
-	KeyDown       Key = 40
-	KeyQ          Key = 81
-	KeyW          Key = 87
-	KeyE          Key = 69
-	KeyA          Key = 65
-	KeyS          Key = 83
-	KeyD          Key = 68
-	KeySpace      Key = 32
+	KeySpace        Key = 32
+	KeyApostrophe   Key = -1
+	KeyComma        Key = -1
+	KeyMinus        Key = -1
+	KeyPeriod       Key = -1
+	KeySlash        Key = -1
+	Key0            Key = -1
+	Key1            Key = 49
+	Key2            Key = 50
+	Key3            Key = 51
+	Key4            Key = -1
+	Key5            Key = -1
+	Key6            Key = -1
+	Key7            Key = -1
+	Key8            Key = -1
+	Key9            Key = -1
+	KeySemicolon    Key = -1
+	KeyEqual        Key = -1
+	KeyA            Key = 65
+	KeyB            Key = -1
+	KeyC            Key = -1
+	KeyD            Key = 68
+	KeyE            Key = 69
+	KeyF            Key = -1
+	KeyG            Key = -1
+	KeyH            Key = -1
+	KeyI            Key = -1
+	KeyJ            Key = -1
+	KeyK            Key = -1
+	KeyL            Key = -1
+	KeyM            Key = -1
+	KeyN            Key = -1
+	KeyO            Key = -1
+	KeyP            Key = -1
+	KeyQ            Key = 81
+	KeyR            Key = -1
+	KeyS            Key = 83
+	KeyT            Key = -1
+	KeyU            Key = -1
+	KeyV            Key = -1
+	KeyW            Key = 87
+	KeyX            Key = -1
+	KeyY            Key = -1
+	KeyZ            Key = -1
+	KeyLeftBracket  Key = -1
+	KeyBackslash    Key = -1
+	KeyRightBracket Key = -1
+	KeyGraveAccent  Key = -1
+	KeyWorld1       Key = -1
+	KeyWorld2       Key = -1
+	KeyEscape       Key = 27
+	KeyEnter        Key = 13
+	KeyTab          Key = -1
+	KeyBackspace    Key = -1
+	KeyInsert       Key = -1
+	KeyDelete       Key = -1
+	KeyRight        Key = 39
+	KeyLeft         Key = 37
+	KeyDown         Key = 40
+	KeyUp           Key = 38
+	KeyPageUp       Key = -1
+	KeyPageDown     Key = -1
+	KeyHome         Key = -1
+	KeyEnd          Key = -1
+	KeyCapsLock     Key = -1
+	KeyScrollLock   Key = -1
+	KeyNumLock      Key = -1
+	KeyPrintScreen  Key = -1
+	KeyPause        Key = -1
+	KeyF1           Key = 112
+	KeyF2           Key = 113
+	KeyF3           Key = -1
+	KeyF4           Key = -1
+	KeyF5           Key = -1
+	KeyF6           Key = -1
+	KeyF7           Key = -1
+	KeyF8           Key = -1
+	KeyF9           Key = -1
+	KeyF10          Key = -1
+	KeyF11          Key = -1
+	KeyF12          Key = -1
+	KeyKP0          Key = -1
+	KeyKP1          Key = -1
+	KeyKP2          Key = -1
+	KeyKP3          Key = -1
+	KeyKP4          Key = -1
+	KeyKP5          Key = -1
+	KeyKP6          Key = -1
+	KeyKP7          Key = -1
+	KeyKP8          Key = -1
+	KeyKP9          Key = -1
+	KeyKPDecimal    Key = -1
+	KeyKPDivide     Key = -1
+	KeyKPMultiply   Key = -1
+	KeyKPSubtract   Key = -1
+	KeyKPAdd        Key = -1
+	KeyKPEnter      Key = -1
+	KeyKPEqual      Key = -1
+	KeyLeftShift    Key = 340
+	KeyLeftControl  Key = -1
+	KeyLeftAlt      Key = -1
+	KeyLeftSuper    Key = -1
+	KeyRightShift   Key = 344
+	KeyRightControl Key = -1
+	KeyRightAlt     Key = -1
+	KeyRightSuper   Key = -1
+	KeyMenu         Key = -1
 )
 
 type MouseButton int
@@ -474,6 +562,10 @@ const (
 	MouseButton1 MouseButton = 0
 	MouseButton2 MouseButton = 2 // Web MouseEvent has middle and right mouse buttons in reverse order.
 	MouseButton3 MouseButton = 1 // Web MouseEvent has middle and right mouse buttons in reverse order.
+
+	MouseButtonLeft   = MouseButton1
+	MouseButtonRight  = MouseButton2
+	MouseButtonMiddle = MouseButton3
 )
 
 type Action int
@@ -522,3 +614,88 @@ type nopCloser struct {
 }
 
 func (nopCloser) Close() error { return nil }
+
+// ---
+
+func WaitEvents() {
+	// TODO.
+
+	runtime.Gosched()
+}
+
+func PostEmptyEvent() {
+	// TODO: Implement.
+}
+
+func DefaultWindowHints() {
+	// TODO: Implement.
+}
+
+func (w *Window) SetClipboardString(str string) {
+	// TODO: Implement.
+}
+func (w *Window) GetClipboardString() (string, error) {
+	// TODO: Implement.
+	return "", errors.New("GetClipboardString not implemented")
+}
+
+func (w *Window) SetTitle(title string) {
+	document.SetTitle(title)
+}
+
+func (w *Window) Show() {
+	// TODO: Implement.
+}
+
+func (w *Window) Hide() {
+	// TODO: Implement.
+}
+
+func (w *Window) Destroy() {
+	// TODO: Implement.
+}
+
+type CloseCallback func(w *Window)
+
+func (w *Window) SetCloseCallback(cbfun CloseCallback) (previous CloseCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type RefreshCallback func(w *Window)
+
+func (w *Window) SetRefreshCallback(cbfun RefreshCallback) (previous RefreshCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type SizeCallback func(w *Window, width int, height int)
+
+func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type CursorEnterCallback func(w *Window, entered bool)
+
+func (w *Window) SetCursorEnterCallback(cbfun CursorEnterCallback) (previous CursorEnterCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type CharModsCallback func(w *Window, char rune, mods ModifierKey)
+
+func (w *Window) SetCharModsCallback(cbfun CharModsCallback) (previous CharModsCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
