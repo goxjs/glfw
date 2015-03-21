@@ -75,6 +75,25 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		w.Context = gl
 	}
 
+	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
+		// HACK: Go fullscreen?
+		width := dom.GetWindow().InnerWidth()
+		height := dom.GetWindow().InnerHeight()
+
+		devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
+		w.canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
+		w.canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
+		w.canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
+		w.canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
+
+		if w.framebufferSizeCallback != nil {
+			w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
+		}
+		if w.sizeCallback != nil {
+			w.sizeCallback(w, w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
+		}
+	})
+
 	document.AddEventListener("keydown", false, func(event dom.Event) {
 		ke := event.(*dom.KeyboardEvent)
 
@@ -238,11 +257,13 @@ type Window struct {
 
 	keys []Action
 
-	cursorPosCallback     CursorPosCallback
-	mouseMovementCallback MouseMovementCallback
-	mouseButtonCallback   MouseButtonCallback
-	keyCallback           KeyCallback
-	scrollCallback        ScrollCallback
+	cursorPosCallback       CursorPosCallback
+	mouseMovementCallback   MouseMovementCallback
+	mouseButtonCallback     MouseButtonCallback
+	keyCallback             KeyCallback
+	scrollCallback          ScrollCallback
+	framebufferSizeCallback FramebufferSizeCallback
+	sizeCallback            SizeCallback
 
 	touches *js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -313,19 +334,7 @@ func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous Mou
 type FramebufferSizeCallback func(w *Window, width int, height int)
 
 func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback) {
-	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
-		// HACK: Go fullscreen?
-		width := dom.GetWindow().InnerWidth()
-		height := dom.GetWindow().InnerHeight()
-
-		devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
-		w.canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
-		w.canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
-		w.canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
-		w.canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
-
-		cbfun(w, w.canvas.Width, w.canvas.Height)
-	})
+	w.framebufferSizeCallback = cbfun
 
 	// TODO: Handle previous.
 	return nil
@@ -676,7 +685,7 @@ func (w *Window) SetRefreshCallback(cbfun RefreshCallback) (previous RefreshCall
 type SizeCallback func(w *Window, width int, height int)
 
 func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
-	// TODO: Implement.
+	w.sizeCallback = cbfun
 
 	// TODO: Handle previous.
 	return nil
