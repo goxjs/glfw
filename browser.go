@@ -87,10 +87,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		w.canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
 
 		if w.framebufferSizeCallback != nil {
-			w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
+			// TODO: Callbacks may be blocking so they need to happen asyncronously. However,
+			//       GLFW API promises the callbacks will occur from one thread, so may want to do that.
+			go w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
 		}
 		if w.sizeCallback != nil {
-			w.sizeCallback(w, w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
+			go w.sizeCallback(w, w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
 		}
 	})
 
@@ -114,7 +116,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			if w.keyCallback != nil {
 				mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
-				w.keyCallback(w, key, -1, action, mods)
+				go w.keyCallback(w, key, -1, action, mods)
 			}
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
@@ -137,7 +139,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			if w.keyCallback != nil {
 				mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
-				w.keyCallback(w, key, -1, Release, mods)
+				go w.keyCallback(w, key, -1, Release, mods)
 			}
 		default:
 			fmt.Println("Unknown KeyCode:", ke.KeyCode)
@@ -154,7 +156,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		w.mouseButton[me.Button] = Press
 		if w.mouseButtonCallback != nil {
-			w.mouseButtonCallback(w, MouseButton(me.Button), Press, 0)
+			go w.mouseButtonCallback(w, MouseButton(me.Button), Press, 0)
 		}
 
 		me.PreventDefault()
@@ -167,7 +169,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		w.mouseButton[me.Button] = Release
 		if w.mouseButtonCallback != nil {
-			w.mouseButtonCallback(w, MouseButton(me.Button), Release, 0)
+			go w.mouseButtonCallback(w, MouseButton(me.Button), Release, 0)
 		}
 
 		me.PreventDefault()
@@ -181,10 +183,10 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		w.cursorPos[0], w.cursorPos[1] = float64(me.ClientX), float64(me.ClientY)
 		if w.cursorPosCallback != nil {
-			w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
+			go w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
 		}
 		if w.mouseMovementCallback != nil {
-			w.mouseMovementCallback(w, w.cursorPos[0], w.cursorPos[1], float64(me.MovementX), float64(me.MovementY))
+			go w.mouseMovementCallback(w, w.cursorPos[0], w.cursorPos[1], float64(me.MovementX), float64(me.MovementY))
 		}
 
 		me.PreventDefault()
@@ -204,7 +206,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		if w.scrollCallback != nil {
-			w.scrollCallback(w, -we.DeltaX*multiplier, -we.DeltaY*multiplier)
+			go w.scrollCallback(w, -we.DeltaX*multiplier, -we.DeltaY*multiplier)
 		}
 
 		we.PreventDefault()
@@ -219,12 +221,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			t := touches.Index(0)
 
 			if w.mouseMovementCallback != nil {
-				w.mouseMovementCallback(w, t.Get("clientX").Float(), t.Get("clientY").Float(), t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
+				go w.mouseMovementCallback(w, t.Get("clientX").Float(), t.Get("clientY").Float(), t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
 			}
 
 			w.cursorPos[0], w.cursorPos[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
 			if w.cursorPosCallback != nil {
-				w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
+				go w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
 			}
 		}
 		w.touches = touches
