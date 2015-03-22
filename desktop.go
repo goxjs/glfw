@@ -269,6 +269,19 @@ const (
 	KeyF10          = Key(glfw.KeyF10)
 	KeyF11          = Key(glfw.KeyF11)
 	KeyF12          = Key(glfw.KeyF12)
+	KeyF13          = Key(glfw.KeyF13)
+	KeyF14          = Key(glfw.KeyF14)
+	KeyF15          = Key(glfw.KeyF15)
+	KeyF16          = Key(glfw.KeyF16)
+	KeyF17          = Key(glfw.KeyF17)
+	KeyF18          = Key(glfw.KeyF18)
+	KeyF19          = Key(glfw.KeyF19)
+	KeyF20          = Key(glfw.KeyF20)
+	KeyF21          = Key(glfw.KeyF21)
+	KeyF22          = Key(glfw.KeyF22)
+	KeyF23          = Key(glfw.KeyF23)
+	KeyF24          = Key(glfw.KeyF24)
+	KeyF25          = Key(glfw.KeyF25)
 	KeyKP0          = Key(glfw.KeyKP0)
 	KeyKP1          = Key(glfw.KeyKP1)
 	KeyKP2          = Key(glfw.KeyKP2)
@@ -425,6 +438,62 @@ func (w *Window) SetCharModsCallback(cbfun CharModsCallback) (previous CharModsC
 	}
 
 	p := w.Window.SetCharModsCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type PosCallback func(w *Window, xpos int, ypos int)
+
+func (w *Window) SetPosCallback(cbfun PosCallback) (previous PosCallback) {
+	wrappedCbfun := func(_ *glfw.Window, xpos int, ypos int) {
+		cbfun(w, xpos, ypos)
+	}
+
+	p := w.Window.SetPosCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type FocusCallback func(w *Window, focused bool)
+
+func (w *Window) SetFocusCallback(cbfun FocusCallback) (previous FocusCallback) {
+	wrappedCbfun := func(_ *glfw.Window, focused bool) {
+		cbfun(w, focused)
+	}
+
+	p := w.Window.SetFocusCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type IconifyCallback func(w *Window, iconified bool)
+
+func (w *Window) SetIconifyCallback(cbfun IconifyCallback) (previous IconifyCallback) {
+	wrappedCbfun := func(_ *glfw.Window, iconified bool) {
+		cbfun(w, iconified)
+	}
+
+	p := w.Window.SetIconifyCallback(wrappedCbfun)
+	_ = p
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type DropCallback func(w *Window, names []string)
+
+func (w *Window) SetDropCallback(cbfun DropCallback) (previous DropCallback) {
+	wrappedCbfun := func(_ *glfw.Window, names []string) {
+		cbfun(w, names)
+	}
+
+	p := w.Window.SetDropCallback(wrappedCbfun)
 	_ = p
 
 	// TODO: Handle previous.

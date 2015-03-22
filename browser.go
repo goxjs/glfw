@@ -537,6 +537,19 @@ const (
 	KeyF10          Key = -1
 	KeyF11          Key = -1
 	KeyF12          Key = -1
+	KeyF13          Key = -1
+	KeyF14          Key = -1
+	KeyF15          Key = -1
+	KeyF16          Key = -1
+	KeyF17          Key = -1
+	KeyF18          Key = -1
+	KeyF19          Key = -1
+	KeyF20          Key = -1
+	KeyF21          Key = -1
+	KeyF22          Key = -1
+	KeyF23          Key = -1
+	KeyF24          Key = -1
+	KeyF25          Key = -1
 	KeyKP0          Key = -1
 	KeyKP1          Key = -1
 	KeyKP2          Key = -1
@@ -704,6 +717,42 @@ type CharModsCallback func(w *Window, char rune, mods ModifierKey)
 
 func (w *Window) SetCharModsCallback(cbfun CharModsCallback) (previous CharModsCallback) {
 	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type PosCallback func(w *Window, xpos int, ypos int)
+
+func (w *Window) SetPosCallback(cbfun PosCallback) (previous PosCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type FocusCallback func(w *Window, focused bool)
+
+func (w *Window) SetFocusCallback(cbfun FocusCallback) (previous FocusCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type IconifyCallback func(w *Window, iconified bool)
+
+func (w *Window) SetIconifyCallback(cbfun IconifyCallback) (previous IconifyCallback) {
+	// TODO: Implement.
+
+	// TODO: Handle previous.
+	return nil
+}
+
+type DropCallback func(w *Window, names []string)
+
+func (w *Window) SetDropCallback(cbfun DropCallback) (previous DropCallback) {
+	// TODO: Implement. Can use HTML5 file drag and drop API?
 
 	// TODO: Handle previous.
 	return nil
