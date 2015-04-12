@@ -20,8 +20,6 @@ import (
 var document = dom.GetWindow().Document().(dom.HTMLDocument)
 
 func Init() error {
-	document.Body().Style().SetProperty("margin", "0px", "")
-
 	return nil
 }
 
@@ -44,6 +42,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
 	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
 
+	if js.Global.Get("document").Get("body") == nil {
+		body := js.Global.Get("document").Call("createElement", "body")
+		js.Global.Get("document").Set("body", body)
+		log.Println("Creating body, since it doesn't exist.")
+	}
+	document.Body().Style().SetProperty("margin", "0", "")
 	document.Body().AppendChild(canvas)
 
 	document.SetTitle(title)
@@ -73,6 +77,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		w.Context = gl
+	}
+
+	if w.canvas.Underlying().Get("requestPointerLock") == js.Undefined ||
+		document.Underlying().Get("exitPointerLock") == js.Undefined {
+
+		w.missing.pointerLock = true
 	}
 
 	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
@@ -181,12 +191,21 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	document.AddEventListener("mousemove", false, func(event dom.Event) {
 		me := event.(*dom.MouseEvent)
 
+		var movementX, movementY float64
+		if !w.missing.pointerLock {
+			movementX = float64(me.MovementX)
+			movementY = float64(me.MovementY)
+		} else {
+			movementX = float64(me.ClientX) - w.cursorPos[0]
+			movementY = float64(me.ClientY) - w.cursorPos[1]
+		}
+
 		w.cursorPos[0], w.cursorPos[1] = float64(me.ClientX), float64(me.ClientY)
 		if w.cursorPosCallback != nil {
 			go w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
 		}
 		if w.mouseMovementCallback != nil {
-			go w.mouseMovementCallback(w, w.cursorPos[0], w.cursorPos[1], float64(me.MovementX), float64(me.MovementY))
+			go w.mouseMovementCallback(w, w.cursorPos[0], w.cursorPos[1], movementX, movementY)
 		}
 
 		me.PreventDefault()
@@ -252,6 +271,10 @@ type Window struct {
 	Context *gogl.Context
 
 	canvas *dom.HTMLCanvasElement
+
+	missing struct {
+		pointerLock bool
+	}
 
 	cursorMode  int
 	cursorPos   [2]float64
@@ -428,6 +451,10 @@ var ErrInvalidValue = errors.New("invalid value")
 func (w *Window) SetInputMode(mode InputMode, value int) {
 	switch mode {
 	case CursorMode:
+		if w.missing.pointerLock {
+			log.Println("warning: Pointer Lock unsupported")
+			return
+		}
 		switch value {
 		case CursorNormal:
 			w.cursorMode = value
