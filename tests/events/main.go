@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	glfw "github.com/shurcooL/goglfw"
+	"github.com/goxjs/glfw"
 )
 
 var counter int = -1
@@ -435,7 +435,7 @@ func DropCallback(w *glfw.Window, names []string) {
 }
 
 func main() {
-	err := glfw.Init()
+	err := glfw.Init(nil)
 	if err != nil {
 		panic(err)
 	}
@@ -465,7 +465,6 @@ func main() {
 	window.SetCharModsCallback(CharModsCallback)
 	window.SetDropCallback(DropCallback)
 
-	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 
 	fmt.Println("Main loop starting.")

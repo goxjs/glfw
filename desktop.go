@@ -1,13 +1,12 @@
 // +build !js
 
-package goglfw
+package glfw
 
 import (
 	"os"
 	"runtime"
 
 	"github.com/go-gl/glfw/v3.1/glfw"
-	"github.com/shurcooL/gogl"
 	"golang.org/x/tools/godoc/vfs"
 )
 
@@ -15,7 +14,10 @@ func init() {
 	runtime.LockOSThread()
 }
 
-func Init() error {
+// Init initializes the library.
+//
+// ContextSwitcher is unused on desktop platform.
+func Init(_ ContextSwitcher) error {
 	return glfw.Init()
 }
 
@@ -40,8 +42,6 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 
 	window := &Window{Window: w}
 
-	window.Context = gogl.NewContext()
-
 	return window, err
 }
 
@@ -49,10 +49,12 @@ func SwapInterval(interval int) {
 	glfw.SwapInterval(interval)
 }
 
+func DetachCurrentContext() {
+	glfw.DetachCurrentContext()
+}
+
 type Window struct {
 	*glfw.Window
-
-	Context *gogl.Context
 }
 
 type Monitor struct {

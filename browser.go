@@ -1,6 +1,6 @@
 // +build js
 
-package goglfw
+package glfw
 
 import (
 	"bytes"
@@ -11,7 +11,6 @@ import (
 	"runtime"
 
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/shurcooL/gogl"
 	"golang.org/x/tools/godoc/vfs"
 	"honnef.co/go/js/dom"
 	"honnef.co/go/js/xhr"
@@ -19,7 +18,11 @@ import (
 
 var document = dom.GetWindow().Document().(dom.HTMLDocument)
 
-func Init() error {
+var contextSwitcher ContextSwitcher
+
+func Init(cs ContextSwitcher) error {
+	contextSwitcher = cs
+
 	return nil
 }
 
@@ -61,22 +64,20 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		document.Body().AppendChild(text)
 	}
 
-	w := &Window{
-		canvas: canvas,
-	}
+	// Use glfw hints.
+	attrs := defaultAttributes()
+	attrs.Alpha = (hints[AlphaBits] > 0)
+	attrs.Antialias = (hints[Samples] > 0)
 
 	// Create GL context.
-	{
-		attrs := gogl.DefaultAttributes()
-		attrs.Alpha = (hints[AlphaBits] > 0)
-		attrs.Antialias = (hints[Samples] > 0)
+	context, err := newContext(canvas.Underlying(), attrs)
+	if err != nil {
+		return nil, err
+	}
 
-		gl, err := gogl.NewContext(w.canvas.Underlying(), attrs)
-		if err != nil {
-			return nil, err
-		}
-
-		w.Context = gl
+	w := &Window{
+		canvas:  canvas,
+		context: context,
 	}
 
 	if w.canvas.Underlying().Get("requestPointerLock") == js.Undefined ||
@@ -268,9 +269,8 @@ func SwapInterval(interval int) error {
 }
 
 type Window struct {
-	Context *gogl.Context
-
-	canvas *dom.HTMLCanvasElement
+	canvas  *dom.HTMLCanvasElement
+	context *js.Object
 
 	missing struct {
 		pointerLock bool
@@ -300,8 +300,16 @@ func PollEvents() error {
 	return nil
 }
 
-func (w *Window) MakeContextCurrent() error {
-	return nil
+func (w *Window) MakeContextCurrent() {
+	contextSwitcher.MakeContextCurrent(w.context)
+}
+
+func DetachCurrentContext() {
+	contextSwitcher.MakeContextCurrent(nil)
+}
+
+func GetCurrentContext() *Window {
+	panic("not yet implemented")
 }
 
 type CursorPosCallback func(w *Window, xpos float64, ypos float64)

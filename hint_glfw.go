@@ -1,6 +1,6 @@
 // +build !js
 
-package goglfw
+package glfw
 
 import "github.com/go-gl/glfw/v3.1/glfw"
 
