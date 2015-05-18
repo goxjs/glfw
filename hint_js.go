@@ -1,6 +1,6 @@
 // +build js
 
-package goglfw
+package glfw
 
 var hints = make(map[Hint]int)
 

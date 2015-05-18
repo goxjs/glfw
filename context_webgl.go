@@ -1,6 +1,6 @@
 // +build js
 
-package goglfw
+package glfw
 
 import (
 	"errors"
