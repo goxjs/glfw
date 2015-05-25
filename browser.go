@@ -115,7 +115,16 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			action = Repeat
 		}
 
-		switch key := Key(ke.KeyCode); key {
+		key := Key(ke.KeyCode)
+
+		switch {
+		case key == 16 && ke.Location == dom.KeyLocationLeft:
+			key = KeyLeftShift
+		case key == 16 && ke.Location == dom.KeyLocationRight:
+			key = KeyRightShift
+		}
+
+		switch key {
 		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
 			// Extend slice if needed.
 			neededSize := int(key) + 1
@@ -138,7 +147,16 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	document.AddEventListener("keyup", false, func(event dom.Event) {
 		ke := event.(*dom.KeyboardEvent)
 
-		switch key := Key(ke.KeyCode); key {
+		key := Key(ke.KeyCode)
+
+		switch {
+		case key == 16 && ke.Location == dom.KeyLocationLeft:
+			key = KeyLeftShift
+		case key == 16 && ke.Location == dom.KeyLocationRight:
+			key = KeyRightShift
+		}
+
+		switch key {
 		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
 			// Extend slice if needed.
 			neededSize := int(key) + 1

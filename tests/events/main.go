@@ -465,8 +465,6 @@ func main() {
 	window.SetCharModsCallback(CharModsCallback)
 	window.SetDropCallback(DropCallback)
 
-	glfw.SwapInterval(1)
-
 	fmt.Println("Main loop starting.")
 
 	for !window.ShouldClose() {
