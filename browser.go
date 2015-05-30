@@ -85,6 +85,19 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		w.missing.pointerLock = true
 	}
+	if w.canvas.Underlying().Get("webkitRequestFullscreen") == js.Undefined ||
+		document.Underlying().Get("webkitExitFullscreen") == js.Undefined {
+
+		w.missing.fullscreen = true
+	}
+
+	if monitor != nil {
+		if w.missing.fullscreen {
+			log.Println("warning: Fullscreen API unsupported")
+		} else {
+			w.requestFullscreen = true
+		}
+	}
 
 	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
 		// HACK: Go fullscreen?
@@ -108,6 +121,8 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	})
 
 	document.AddEventListener("keydown", false, func(event dom.Event) {
+		w.goFullscreenIfRequested()
+
 		ke := event.(*dom.KeyboardEvent)
 
 		action := Press
@@ -125,7 +140,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		switch key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
 			// Extend slice if needed.
 			neededSize := int(key) + 1
 			if neededSize > len(w.keys) {
@@ -145,6 +160,8 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		ke.PreventDefault()
 	})
 	document.AddEventListener("keyup", false, func(event dom.Event) {
+		w.goFullscreenIfRequested()
+
 		ke := event.(*dom.KeyboardEvent)
 
 		key := Key(ke.KeyCode)
@@ -157,7 +174,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		switch key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
 			// Extend slice if needed.
 			neededSize := int(key) + 1
 			if neededSize > len(w.keys) {
@@ -178,6 +195,8 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	})
 
 	document.AddEventListener("mousedown", false, func(event dom.Event) {
+		w.goFullscreenIfRequested()
+
 		me := event.(*dom.MouseEvent)
 		if !(me.Button >= 0 && me.Button <= 2) {
 			return
@@ -191,6 +210,8 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		me.PreventDefault()
 	})
 	document.AddEventListener("mouseup", false, func(event dom.Event) {
+		w.goFullscreenIfRequested()
+
 		me := event.(*dom.MouseEvent)
 		if !(me.Button >= 0 && me.Button <= 2) {
 			return
@@ -252,6 +273,8 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 	// Hacky mouse-emulation-via-touch.
 	touchHandler := func(event dom.Event) {
+		w.goFullscreenIfRequested()
+
 		te := event.(*dom.TouchEvent)
 
 		touches := te.Get("touches")
@@ -287,11 +310,15 @@ func SwapInterval(interval int) error {
 }
 
 type Window struct {
-	canvas  *dom.HTMLCanvasElement
-	context *js.Object
+	canvas            *dom.HTMLCanvasElement
+	context           *js.Object
+	requestFullscreen bool // requestFullscreen is set to true when fullscreen should be entered as soon as possible (in a user input handler).
+	fullscreen        bool // fullscreen is true if we're currently in fullscreen mode.
 
+	// Unavailable browser APIs.
 	missing struct {
-		pointerLock bool
+		pointerLock bool // Pointer Lock API.
+		fullscreen  bool // Fullscreen API.
 	}
 
 	cursorMode  int
@@ -311,7 +338,39 @@ type Window struct {
 	touches *js.Object // Hacky mouse-emulation-via-touch.
 }
 
-type Monitor struct {
+func (w *Window) SetSize(width, height int) {
+	fmt.Println("not yet implemented: SetSize", width, height)
+}
+
+// goFullscreenIfRequested performs webkitRequestFullscreen if it was scheduled. It is called only from
+// user events, because that API will fail if called at any other time.
+func (w *Window) goFullscreenIfRequested() {
+	if !w.requestFullscreen {
+		return
+	}
+	w.requestFullscreen = false
+	w.canvas.Underlying().Call("webkitRequestFullscreen")
+	w.fullscreen = true
+}
+
+type Monitor struct{}
+
+func (m *Monitor) GetVideoMode() *VidMode {
+	return &VidMode{
+		// HACK: Hardcoded sample values.
+		// TODO: Try to get real values from browser via some API, if possible.
+		Width:       1680,
+		Height:      1050,
+		RedBits:     8,
+		GreenBits:   8,
+		BlueBits:    8,
+		RefreshRate: 60,
+	}
+}
+
+func GetPrimaryMonitor() *Monitor {
+	// TODO: Implement real functionality.
+	return &Monitor{}
 }
 
 func PollEvents() error {
@@ -478,7 +537,7 @@ func (w *Window) SetInputMode(mode InputMode, value int) {
 	switch mode {
 	case CursorMode:
 		if w.missing.pointerLock {
-			log.Println("warning: Pointer Lock unsupported")
+			log.Println("warning: Pointer Lock API unsupported")
 			return
 		}
 		switch value {
@@ -563,7 +622,7 @@ const (
 	KeyWorld2       Key = -1
 	KeyEscape       Key = 27
 	KeyEnter        Key = 13
-	KeyTab          Key = -1
+	KeyTab          Key = 9
 	KeyBackspace    Key = -1
 	KeyInsert       Key = -1
 	KeyDelete       Key = -1
@@ -729,7 +788,15 @@ func (w *Window) Hide() {
 }
 
 func (w *Window) Destroy() {
-	// TODO: Implement.
+	document.Body().RemoveChild(w.canvas)
+	if w.fullscreen {
+		if w.missing.fullscreen {
+			log.Println("warning: Fullscreen API unsupported")
+		} else {
+			document.Underlying().Call("webkitExitFullscreen")
+			w.fullscreen = false
+		}
+	}
 }
 
 type CloseCallback func(w *Window)

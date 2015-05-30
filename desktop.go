@@ -61,6 +61,11 @@ type Monitor struct {
 	*glfw.Monitor
 }
 
+func GetPrimaryMonitor() *Monitor {
+	m := glfw.GetPrimaryMonitor()
+	return &Monitor{Monitor: m}
+}
+
 func PollEvents() {
 	glfw.PollEvents()
 }
