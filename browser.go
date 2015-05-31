@@ -18,11 +18,10 @@ import (
 
 var document = dom.GetWindow().Document().(dom.HTMLDocument)
 
-var contextSwitcher ContextSwitcher
+var contextWatcher ContextWatcher
 
-func Init(cs ContextSwitcher) error {
-	contextSwitcher = cs
-
+func Init(cw ContextWatcher) error {
+	contextWatcher = cw
 	return nil
 }
 
@@ -378,11 +377,11 @@ func PollEvents() error {
 }
 
 func (w *Window) MakeContextCurrent() {
-	contextSwitcher.MakeContextCurrent(w.context)
+	contextWatcher.OnBecomeCurrent(w.context)
 }
 
 func DetachCurrentContext() {
-	contextSwitcher.MakeContextCurrent(nil)
+	contextWatcher.OnDetach()
 }
 
 func GetCurrentContext() *Window {

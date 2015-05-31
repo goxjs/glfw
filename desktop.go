@@ -14,10 +14,14 @@ func init() {
 	runtime.LockOSThread()
 }
 
+var contextWatcher ContextWatcher
+
 // Init initializes the library.
 //
-// ContextSwitcher is unused on desktop platform.
-func Init(_ ContextSwitcher) error {
+// A valid ContextWatcher must be provided. It gets notified when context becomes current or detached.
+// It should be provided by the GL bindings you are using, so you can do glfw.Init(gl.ContextWatcher).
+func Init(cw ContextWatcher) error {
+	contextWatcher = cw
 	return glfw.Init()
 }
 
@@ -49,8 +53,14 @@ func SwapInterval(interval int) {
 	glfw.SwapInterval(interval)
 }
 
+func (w *Window) MakeContextCurrent() {
+	w.Window.MakeContextCurrent()
+	contextWatcher.OnBecomeCurrent(nil)
+}
+
 func DetachCurrentContext() {
 	glfw.DetachCurrentContext()
+	contextWatcher.OnDetach()
 }
 
 type Window struct {

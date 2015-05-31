@@ -4,11 +4,14 @@
 // It is used for creating a GL context and receiving events.
 package glfw
 
-// ContextSwitcher is a general mechanism for switching between contexts.
-type ContextSwitcher interface {
-	// MakeContextCurrent takes a context and makes it current.
-	// If given context is nil, then the current context is detached.
-	MakeContextCurrent(context interface{})
+// ContextWatcher is a general mechanism for being notified when context becomes current or detached.
+type ContextWatcher interface {
+	// OnBecomeCurrent is called after a context becomes current.
+	// context is is a platform-specific representation of the context, if available.
+	OnBecomeCurrent(context interface{})
+
+	// OnDetach is called after the current context is detached.
+	OnDetach()
 }
 
 // VidMode describes a single video mode.
