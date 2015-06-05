@@ -7,13 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"runtime"
 
 	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/tools/godoc/vfs"
 	"honnef.co/go/js/dom"
-	"honnef.co/go/js/xhr"
 )
 
 var document = dom.GetWindow().Document().(dom.HTMLDocument)
@@ -736,11 +737,17 @@ const (
 
 // Open opens a named asset.
 func Open(name string) (vfs.ReadSeekCloser, error) {
-	b, err := xhr.Send("GET", name, nil)
+	resp, err := http.Get(name)
 	if err != nil {
 		return nil, err
 	}
-
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("non-200 status: %s", resp.Status)
+	}
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 	return nopCloser{bytes.NewReader(b)}, nil
 }
 
