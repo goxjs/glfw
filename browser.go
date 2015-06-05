@@ -741,6 +741,7 @@ func Open(name string) (vfs.ReadSeekCloser, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("non-200 status: %s", resp.Status)
 	}
