@@ -4,11 +4,11 @@
 // It is used for creating a GL context and receiving events.
 package glfw
 
-// ContextWatcher is a general mechanism for being notified when context becomes current or detached.
+// ContextWatcher is a general mechanism for being notified when context is made current or detached.
 type ContextWatcher interface {
-	// OnBecomeCurrent is called after a context becomes current.
-	// context is is a platform-specific representation of the context, if available.
-	OnBecomeCurrent(context interface{})
+	// OnMakeCurrent is called after a context is made current.
+	// context is is a platform-specific representation of the context, or nil if unavailable.
+	OnMakeCurrent(context interface{})
 
 	// OnDetach is called after the current context is detached.
 	OnDetach()

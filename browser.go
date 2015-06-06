@@ -378,7 +378,7 @@ func PollEvents() error {
 }
 
 func (w *Window) MakeContextCurrent() {
-	contextWatcher.OnBecomeCurrent(w.context)
+	contextWatcher.OnMakeCurrent(w.context)
 }
 
 func DetachCurrentContext() {

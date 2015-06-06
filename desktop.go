@@ -57,7 +57,7 @@ func (w *Window) MakeContextCurrent() {
 	w.Window.MakeContextCurrent()
 	// In reality, context is available on each platform via GetGLXContext, GetWGLContext, GetNSGLContext, etc.
 	// Pretend it is not available and pass nil, since it's not actually needed at this time.
-	contextWatcher.OnBecomeCurrent(nil)
+	contextWatcher.OnMakeCurrent(nil)
 }
 
 func DetachCurrentContext() {
