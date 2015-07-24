@@ -338,6 +338,10 @@ type Window struct {
 	touches *js.Object // Hacky mouse-emulation-via-touch.
 }
 
+func (w *Window) SetPos(xpos, ypos int) {
+	fmt.Println("not implemented: SetPos:", xpos, ypos)
+}
+
 func (w *Window) SetSize(width, height int) {
 	fmt.Println("not implemented: SetSize:", width, height)
 }
@@ -459,6 +463,11 @@ func (w *Window) GetSize() (width, height int) {
 
 func (w *Window) GetFramebufferSize() (width, height int) {
 	return w.canvas.Width, w.canvas.Height
+}
+
+func (w *Window) GetPos() (x, y int) {
+	// Not implemented.
+	return
 }
 
 func (w *Window) ShouldClose() bool {
