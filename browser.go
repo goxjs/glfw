@@ -339,7 +339,7 @@ type Window struct {
 }
 
 func (w *Window) SetSize(width, height int) {
-	fmt.Println("not yet implemented: SetSize", width, height)
+	fmt.Println("not implemented: SetSize:", width, height)
 }
 
 // goFullscreenIfRequested performs webkitRequestFullscreen if it was scheduled. It is called only from
@@ -386,7 +386,7 @@ func DetachCurrentContext() {
 }
 
 func GetCurrentContext() *Window {
-	panic("not yet implemented")
+	panic("not implemented")
 }
 
 type CursorPosCallback func(w *Window, xpos float64, ypos float64)
@@ -526,7 +526,7 @@ func (w *Window) GetInputMode(mode InputMode) int {
 	case CursorMode:
 		return w.cursorMode
 	default:
-		panic(errors.New("not yet impl"))
+		panic(errors.New("not implemented"))
 	}
 }
 
@@ -559,9 +559,9 @@ func (w *Window) SetInputMode(mode InputMode, value int) {
 			panic(ErrInvalidValue)
 		}
 	case StickyKeysMode:
-		panic(errors.New("not impl"))
+		panic(errors.New("not implemented"))
 	case StickyMouseButtonsMode:
-		panic(errors.New("not impl"))
+		panic(errors.New("not implemented"))
 	default:
 		panic(ErrInvalidParameter)
 	}
