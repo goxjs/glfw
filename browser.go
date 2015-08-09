@@ -140,7 +140,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		switch key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeyR, KeyZ, KeyC, KeySpace:
 			// Extend slice if needed.
 			neededSize := int(key) + 1
 			if neededSize > len(w.keys) {
@@ -174,7 +174,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 
 		switch key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeySpace:
+		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeyR, KeyZ, KeyC, KeySpace:
 			// Extend slice if needed.
 			neededSize := int(key) + 1
 			if neededSize > len(w.keys) {
@@ -499,7 +499,15 @@ func (w *Window) GetCursorPos() (x, y float64) {
 	return w.cursorPos[0], w.cursorPos[1]
 }
 
+var keyWarnings = 10
+
 func (w *Window) GetKey(key Key) Action {
+	if key == -1 && keyWarnings > 0 {
+		// TODO: Implement all keys, get rid of this.
+		keyWarnings--
+		log.Println("GetKey: key not implemented.")
+		return Release
+	}
 	if int(key) >= len(w.keys) {
 		return Release
 	}
@@ -599,7 +607,7 @@ const (
 	KeyEqual        Key = -1
 	KeyA            Key = 65
 	KeyB            Key = -1
-	KeyC            Key = -1
+	KeyC            Key = 67
 	KeyD            Key = 68
 	KeyE            Key = 69
 	KeyF            Key = -1
@@ -614,7 +622,7 @@ const (
 	KeyO            Key = -1
 	KeyP            Key = -1
 	KeyQ            Key = 81
-	KeyR            Key = -1
+	KeyR            Key = 82
 	KeyS            Key = 83
 	KeyT            Key = -1
 	KeyU            Key = -1
@@ -622,7 +630,7 @@ const (
 	KeyW            Key = 87
 	KeyX            Key = -1
 	KeyY            Key = -1
-	KeyZ            Key = -1
+	KeyZ            Key = 90
 	KeyLeftBracket  Key = -1
 	KeyBackslash    Key = -1
 	KeyRightBracket Key = -1
