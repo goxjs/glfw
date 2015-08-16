@@ -112,7 +112,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		if w.framebufferSizeCallback != nil {
 			// TODO: Callbacks may be blocking so they need to happen asyncronously. However,
-			//       GLFW API promises the callbacks will occur from one thread, so may want to do that.
+			//       GLFW API promises the callbacks will occur from one thread (i.e., sequentially), so may want to do that.
 			go w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
 		}
 		if w.sizeCallback != nil {
@@ -130,31 +130,19 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			action = Repeat
 		}
 
-		key := Key(ke.KeyCode)
+		key := toKey(ke)
 
-		switch {
-		case key == 16 && ke.Location == dom.KeyLocationLeft:
-			key = KeyLeftShift
-		case key == 16 && ke.Location == dom.KeyLocationRight:
-			key = KeyRightShift
+		// Extend slice if needed.
+		neededSize := int(key) + 1
+		if neededSize > len(w.keys) {
+			w.keys = append(w.keys, make([]Action, neededSize-len(w.keys))...)
 		}
+		w.keys[key] = action
 
-		switch key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeyR, KeyZ, KeyC, KeySpace:
-			// Extend slice if needed.
-			neededSize := int(key) + 1
-			if neededSize > len(w.keys) {
-				w.keys = append(w.keys, make([]Action, neededSize-len(w.keys))...)
-			}
-			w.keys[key] = action
+		if w.keyCallback != nil {
+			mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
-			if w.keyCallback != nil {
-				mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
-
-				go w.keyCallback(w, key, -1, action, mods)
-			}
-		default:
-			fmt.Println("Unknown KeyCode:", ke.KeyCode)
+			go w.keyCallback(w, key, -1, action, mods)
 		}
 
 		ke.PreventDefault()
@@ -164,31 +152,19 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 		ke := event.(*dom.KeyboardEvent)
 
-		key := Key(ke.KeyCode)
+		key := toKey(ke)
 
-		switch {
-		case key == 16 && ke.Location == dom.KeyLocationLeft:
-			key = KeyLeftShift
-		case key == 16 && ke.Location == dom.KeyLocationRight:
-			key = KeyRightShift
+		// Extend slice if needed.
+		neededSize := int(key) + 1
+		if neededSize > len(w.keys) {
+			w.keys = append(w.keys, make([]Action, neededSize-len(w.keys))...)
 		}
+		w.keys[key] = Release
 
-		switch key {
-		case KeyLeftShift, KeyRightShift, Key1, Key2, Key3, KeyEnter, KeyTab, KeyEscape, KeyF1, KeyF2, KeyLeft, KeyRight, KeyUp, KeyDown, KeyQ, KeyW, KeyE, KeyA, KeyS, KeyD, KeyR, KeyZ, KeyC, KeySpace:
-			// Extend slice if needed.
-			neededSize := int(key) + 1
-			if neededSize > len(w.keys) {
-				w.keys = append(w.keys, make([]Action, neededSize-len(w.keys))...)
-			}
-			w.keys[key] = Release
+		if w.keyCallback != nil {
+			mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
 
-			if w.keyCallback != nil {
-				mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
-
-				go w.keyCallback(w, key, -1, Release, mods)
-			}
-		default:
-			fmt.Println("Unknown KeyCode:", ke.KeyCode)
+			go w.keyCallback(w, key, -1, Release, mods)
 		}
 
 		ke.PreventDefault()
@@ -588,61 +564,61 @@ type Key int
 
 const (
 	KeySpace        Key = 32
-	KeyApostrophe   Key = -1
-	KeyComma        Key = -1
-	KeyMinus        Key = -1
-	KeyPeriod       Key = -1
-	KeySlash        Key = -1
-	Key0            Key = -1
+	KeyApostrophe   Key = 222
+	KeyComma        Key = 188
+	KeyMinus        Key = 189
+	KeyPeriod       Key = 190
+	KeySlash        Key = 191
+	Key0            Key = 48
 	Key1            Key = 49
 	Key2            Key = 50
 	Key3            Key = 51
-	Key4            Key = -1
-	Key5            Key = -1
-	Key6            Key = -1
-	Key7            Key = -1
-	Key8            Key = -1
-	Key9            Key = -1
-	KeySemicolon    Key = -1
-	KeyEqual        Key = -1
+	Key4            Key = 52
+	Key5            Key = 53
+	Key6            Key = 54
+	Key7            Key = 55
+	Key8            Key = 56
+	Key9            Key = 57
+	KeySemicolon    Key = 186
+	KeyEqual        Key = 187
 	KeyA            Key = 65
-	KeyB            Key = -1
+	KeyB            Key = 66
 	KeyC            Key = 67
 	KeyD            Key = 68
 	KeyE            Key = 69
-	KeyF            Key = -1
-	KeyG            Key = -1
-	KeyH            Key = -1
-	KeyI            Key = -1
-	KeyJ            Key = -1
-	KeyK            Key = -1
-	KeyL            Key = -1
-	KeyM            Key = -1
-	KeyN            Key = -1
-	KeyO            Key = -1
-	KeyP            Key = -1
+	KeyF            Key = 70
+	KeyG            Key = 71
+	KeyH            Key = 72
+	KeyI            Key = 73
+	KeyJ            Key = 74
+	KeyK            Key = 75
+	KeyL            Key = 76
+	KeyM            Key = 77
+	KeyN            Key = 78
+	KeyO            Key = 79
+	KeyP            Key = 80
 	KeyQ            Key = 81
 	KeyR            Key = 82
 	KeyS            Key = 83
-	KeyT            Key = -1
-	KeyU            Key = -1
-	KeyV            Key = -1
+	KeyT            Key = 84
+	KeyU            Key = 85
+	KeyV            Key = 86
 	KeyW            Key = 87
-	KeyX            Key = -1
-	KeyY            Key = -1
+	KeyX            Key = 88
+	KeyY            Key = 89
 	KeyZ            Key = 90
-	KeyLeftBracket  Key = -1
-	KeyBackslash    Key = -1
-	KeyRightBracket Key = -1
-	KeyGraveAccent  Key = -1
+	KeyLeftBracket  Key = 219
+	KeyBackslash    Key = 220
+	KeyRightBracket Key = 221
+	KeyGraveAccent  Key = 192
 	KeyWorld1       Key = -1
 	KeyWorld2       Key = -1
 	KeyEscape       Key = 27
 	KeyEnter        Key = 13
 	KeyTab          Key = 9
-	KeyBackspace    Key = -1
+	KeyBackspace    Key = 8
 	KeyInsert       Key = -1
-	KeyDelete       Key = -1
+	KeyDelete       Key = 46
 	KeyRight        Key = 39
 	KeyLeft         Key = 37
 	KeyDown         Key = 40
@@ -651,23 +627,23 @@ const (
 	KeyPageDown     Key = -1
 	KeyHome         Key = -1
 	KeyEnd          Key = -1
-	KeyCapsLock     Key = -1
+	KeyCapsLock     Key = 20
 	KeyScrollLock   Key = -1
 	KeyNumLock      Key = -1
 	KeyPrintScreen  Key = -1
 	KeyPause        Key = -1
 	KeyF1           Key = 112
 	KeyF2           Key = 113
-	KeyF3           Key = -1
-	KeyF4           Key = -1
-	KeyF5           Key = -1
-	KeyF6           Key = -1
-	KeyF7           Key = -1
-	KeyF8           Key = -1
-	KeyF9           Key = -1
-	KeyF10          Key = -1
-	KeyF11          Key = -1
-	KeyF12          Key = -1
+	KeyF3           Key = 114
+	KeyF4           Key = 115
+	KeyF5           Key = 116
+	KeyF6           Key = 117
+	KeyF7           Key = 118
+	KeyF8           Key = 119
+	KeyF9           Key = 120
+	KeyF10          Key = 121
+	KeyF11          Key = 122
+	KeyF12          Key = 123
 	KeyF13          Key = -1
 	KeyF14          Key = -1
 	KeyF15          Key = -1
@@ -699,15 +675,35 @@ const (
 	KeyKPEnter      Key = -1
 	KeyKPEqual      Key = -1
 	KeyLeftShift    Key = 340
-	KeyLeftControl  Key = -1
-	KeyLeftAlt      Key = -1
-	KeyLeftSuper    Key = -1
+	KeyLeftControl  Key = 341
+	KeyLeftAlt      Key = 342
+	KeyLeftSuper    Key = 91
 	KeyRightShift   Key = 344
-	KeyRightControl Key = -1
-	KeyRightAlt     Key = -1
-	KeyRightSuper   Key = -1
+	KeyRightControl Key = 345
+	KeyRightAlt     Key = 346
+	KeyRightSuper   Key = 93
 	KeyMenu         Key = -1
 )
+
+// toKey extracts Key from given KeyboardEvent.
+func toKey(ke *dom.KeyboardEvent) Key {
+	key := Key(ke.KeyCode)
+	switch {
+	case key == 17 && ke.Location == dom.KeyLocationLeft:
+		key = KeyLeftControl
+	case key == 17 && ke.Location == dom.KeyLocationRight:
+		key = KeyRightControl
+	case key == 18 && ke.Location == dom.KeyLocationLeft:
+		key = KeyLeftAlt
+	case key == 18 && ke.Location == dom.KeyLocationRight:
+		key = KeyRightAlt
+	case key == 16 && ke.Location == dom.KeyLocationLeft:
+		key = KeyLeftShift
+	case key == 16 && ke.Location == dom.KeyLocationRight:
+		key = KeyRightShift
+	}
+	return key
+}
 
 type MouseButton int
 
