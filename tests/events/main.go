@@ -1,4 +1,4 @@
-// Command events hooks every available callback and outputs their arguments.
+// events hooks every available callback and outputs their arguments.
 package main
 
 import (
