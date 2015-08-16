@@ -140,7 +140,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		w.keys[key] = action
 
 		if w.keyCallback != nil {
-			mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
+			mods := toModifierKey(ke)
 
 			go w.keyCallback(w, key, -1, action, mods)
 		}
@@ -162,7 +162,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		w.keys[key] = Release
 
 		if w.keyCallback != nil {
-			mods := ModifierKey(0) // TODO: ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey.
+			mods := toModifierKey(ke)
 
 			go w.keyCallback(w, key, -1, Release, mods)
 		}
@@ -689,6 +689,10 @@ const (
 func toKey(ke *dom.KeyboardEvent) Key {
 	key := Key(ke.KeyCode)
 	switch {
+	case key == 16 && ke.Location == dom.KeyLocationLeft:
+		key = KeyLeftShift
+	case key == 16 && ke.Location == dom.KeyLocationRight:
+		key = KeyRightShift
 	case key == 17 && ke.Location == dom.KeyLocationLeft:
 		key = KeyLeftControl
 	case key == 17 && ke.Location == dom.KeyLocationRight:
@@ -697,12 +701,26 @@ func toKey(ke *dom.KeyboardEvent) Key {
 		key = KeyLeftAlt
 	case key == 18 && ke.Location == dom.KeyLocationRight:
 		key = KeyRightAlt
-	case key == 16 && ke.Location == dom.KeyLocationLeft:
-		key = KeyLeftShift
-	case key == 16 && ke.Location == dom.KeyLocationRight:
-		key = KeyRightShift
 	}
 	return key
+}
+
+// toModifierKey extracts ModifierKey from given KeyboardEvent.
+func toModifierKey(ke *dom.KeyboardEvent) ModifierKey {
+	mods := ModifierKey(0)
+	if ke.ShiftKey {
+		mods += ModShift
+	}
+	if ke.CtrlKey {
+		mods += ModControl
+	}
+	if ke.AltKey {
+		mods += ModAlt
+	}
+	if ke.MetaKey {
+		mods += ModSuper
+	}
+	return mods
 }
 
 type MouseButton int
@@ -742,7 +760,7 @@ const (
 type ModifierKey int
 
 const (
-	ModShift ModifierKey = iota
+	ModShift ModifierKey = (1 << iota)
 	ModControl
 	ModAlt
 	ModSuper
