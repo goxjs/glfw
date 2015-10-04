@@ -432,7 +432,8 @@ func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (prev
 
 func (w *Window) GetSize() (width, height int) {
 	// TODO: See if dpi adjustments need to be made.
-	fmt.Println("Window.GetSize:", w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
+	fmt.Println("Window.GetSize:", w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height,
+		"->", int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height))
 
 	return int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height)
 }
