@@ -116,7 +116,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			go w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
 		}
 		if w.sizeCallback != nil {
-			go w.sizeCallback(w, w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
+			go w.sizeCallback(w, int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height))
 		}
 	})
 
@@ -434,7 +434,7 @@ func (w *Window) GetSize() (width, height int) {
 	// TODO: See if dpi adjustments need to be made.
 	fmt.Println("Window.GetSize:", w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height)
 
-	return w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height
+	return int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height)
 }
 
 func (w *Window) GetFramebufferSize() (width, height int) {
