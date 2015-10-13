@@ -1,12 +1,21 @@
-// +build !js,!mobile
+// +build mobile
 
 package glfw
 
 import (
+	"log"
+	"math"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/go-gl/glfw/v3.1/glfw"
+	"golang.org/x/mobile/app"
+	"golang.org/x/mobile/event/lifecycle"
+	"golang.org/x/mobile/event/paint"
+	"golang.org/x/mobile/event/size"
+	"golang.org/x/mobile/event/touch"
+	"golang.org/x/mobile/gl"
 	"golang.org/x/tools/godoc/vfs"
 )
 
@@ -22,31 +31,80 @@ var contextWatcher ContextWatcher
 // It should be provided by the GL bindings you are using, so you can do glfw.Init(gl.ContextWatcher).
 func Init(cw ContextWatcher) error {
 	contextWatcher = cw
-	return glfw.Init()
+	log.Println("Init: not implemented")
+	return nil
 }
 
 func Terminate() {
-	glfw.Terminate()
+	log.Println("Terminate: not implemented")
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
-	var m *glfw.Monitor
-	if monitor != nil {
-		m = monitor.Monitor
-	}
-	var s *glfw.Window
-	if share != nil {
-		s = share.Window
-	}
+	// TODO.
+	log.Println("CreateWindow start...")
+	defer log.Println("                  ...end")
 
-	w, err := glfw.CreateWindow(width, height, title, m, s)
-	if err != nil {
-		return nil, err
-	}
+	// THINK: Problem here. This is blocking, yet it can't be in a goroutine because app.main needs to be on main thread.
+	//
+	//        app.Main called on thread 458207, but app.init ran on 458203
+	//        exit status 1
+	//
+	//        What to do? Perhaps using internals of app instead of trying to import it may be the only viable choice?
+	app.Main(func(a app.App) {
+		var glctx gl.Context
+		var sz size.Event
+		for e := range a.Events() {
+			switch e := a.Filter(e).(type) {
+			case lifecycle.Event:
+				switch e.Crosses(lifecycle.StageVisible) {
+				case lifecycle.CrossOn:
+					glctx, _ = e.DrawContext.(gl.Context)
+					onStart(glctx)
+					a.Send(paint.Event{})
+				case lifecycle.CrossOff:
+					onStop(glctx)
+					glctx = nil
+				}
+			case size.Event:
+				sz = e
+				//touchX = float32(sz.WidthPx / 2)
+				//touchY = float32(sz.HeightPx / 2)
+			case paint.Event:
+				if glctx == nil || e.External {
+					// As we are actively painting as fast as
+					// we can (usually 60 FPS), skip any paint
+					// events sent by the system.
+					continue
+				}
 
-	window := &Window{Window: w}
+				onPaint(glctx, sz)
+				a.Publish()
+				// Drive the animation by preparing to paint the next frame
+				// after this one is shown.
+				a.Send(paint.Event{})
+			case touch.Event:
+				//touchX = e.X
+				//touchY = e.Y
+			}
+		}
+	})
 
-	return window, err
+	window := &Window{}
+	return window, nil
+}
+
+var started = time.Now()
+
+// TODO.
+func onStart(glctx gl.Context) {
+	contextWatcher.OnMakeCurrent(glctx)
+}
+func onStop(glctx gl.Context) {
+	contextWatcher.OnDetach()
+}
+func onPaint(glctx gl.Context, sz size.Event) {
+	glctx.ClearColor(0.8*(0.5*(1.0+float32(math.Sin(time.Since(started).Seconds())))), 0.3, 0.01, 1)
+	glctx.Clear(gl.COLOR_BUFFER_BIT)
 }
 
 func SwapInterval(interval int) {
@@ -54,45 +112,51 @@ func SwapInterval(interval int) {
 }
 
 func (w *Window) MakeContextCurrent() {
-	w.Window.MakeContextCurrent()
+	log.Println("MakeContextCurrent: not implemented")
 	// In reality, context is available on each platform via GetGLXContext, GetWGLContext, GetNSGLContext, etc.
 	// Pretend it is not available and pass nil, since it's not actually needed at this time.
 	contextWatcher.OnMakeCurrent(nil)
 }
 
 func DetachCurrentContext() {
-	glfw.DetachCurrentContext()
+	log.Println("DetachCurrentContext: not implemented")
 	contextWatcher.OnDetach()
 }
 
 type Window struct {
-	*glfw.Window
+}
+
+func (w *Window) ShouldClose() bool {
+	// TODO.
+	return false
+}
+
+func (w *Window) GetSize() (width, height int) {
+	log.Println("GetSize: not implemented")
+	return 0, 0
+}
+
+func (w *Window) GetFramebufferSize() (width, height int) {
+	log.Println("GetFramebufferSize: not implemented")
+	return 0, 0
 }
 
 type Monitor struct {
-	*glfw.Monitor
 }
 
 func GetPrimaryMonitor() *Monitor {
-	m := glfw.GetPrimaryMonitor()
-	return &Monitor{Monitor: m}
+	panic("not implemented")
 }
 
 func PollEvents() {
-	glfw.PollEvents()
+	// TODO.
+	time.Sleep(time.Second / 60)
 }
 
 type CursorPosCallback func(w *Window, xpos float64, ypos float64)
 
 func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback) {
-	wrappedCbfun := func(_ *glfw.Window, xpos float64, ypos float64) {
-		cbfun(w, xpos, ypos)
-	}
-
-	p := w.Window.SetCursorPosCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
+	log.Println("SetCursorPosCallback: not implemented")
 	return nil
 }
 
@@ -100,111 +164,60 @@ type MouseMovementCallback func(w *Window, xpos float64, ypos float64, xdelta fl
 
 var lastMousePos [2]float64 // HACK.
 
-// TODO: For now, this overrides SetCursorPosCallback; should support both.
 func (w *Window) SetMouseMovementCallback(cbfun MouseMovementCallback) (previous MouseMovementCallback) {
-	lastMousePos[0], lastMousePos[1] = w.Window.GetCursorPos()
-	wrappedCbfun := func(_ *glfw.Window, xpos float64, ypos float64) {
-		xdelta, ydelta := xpos-lastMousePos[0], ypos-lastMousePos[1]
-		lastMousePos[0], lastMousePos[1] = xpos, ypos
-		cbfun(w, xpos, ypos, xdelta, ydelta)
-	}
-
-	p := w.Window.SetCursorPosCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type KeyCallback func(w *Window, key Key, scancode int, action Action, mods ModifierKey)
 
 func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
-	wrappedCbfun := func(_ *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-		cbfun(w, Key(key), scancode, Action(action), ModifierKey(mods))
-	}
-
-	p := w.Window.SetKeyCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type CharCallback func(w *Window, char rune)
 
 func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
-	wrappedCbfun := func(_ *glfw.Window, char rune) {
-		cbfun(w, char)
-	}
-
-	p := w.Window.SetCharCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type ScrollCallback func(w *Window, xoff float64, yoff float64)
 
 func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback) {
-	wrappedCbfun := func(_ *glfw.Window, xoff float64, yoff float64) {
-		cbfun(w, xoff, yoff)
-	}
-
-	p := w.Window.SetScrollCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
 
 func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback) {
-	wrappedCbfun := func(_ *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-		cbfun(w, MouseButton(button), Action(action), ModifierKey(mods))
-	}
-
-	p := w.Window.SetMouseButtonCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type FramebufferSizeCallback func(w *Window, width int, height int)
 
 func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (previous FramebufferSizeCallback) {
-	wrappedCbfun := func(_ *glfw.Window, width int, height int) {
-		cbfun(w, width, height)
-	}
-
-	p := w.Window.SetFramebufferSizeCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
+	log.Println("SetFramebufferSizeCallback: not implemented")
 	return nil
 }
 
 func (w *Window) GetKey(key Key) Action {
-	a := w.Window.GetKey(glfw.Key(key))
-	return Action(a)
+	panic("not implemented")
 }
 
 func (w *Window) GetMouseButton(button MouseButton) Action {
-	a := w.Window.GetMouseButton(glfw.MouseButton(button))
-	return Action(a)
+	panic("not implemented")
 }
 
 func (w *Window) GetInputMode(mode InputMode) int {
-	return w.Window.GetInputMode(glfw.InputMode(mode))
+	panic("not implemented")
 }
 
 func (w *Window) SetInputMode(mode InputMode, value int) {
-	w.Window.SetInputMode(glfw.InputMode(mode), value)
+	panic("not implemented")
 }
 
 type Key glfw.Key
+
+// TODO: Use x/mobile/app stuff.
 
 const (
 	KeySpace        = Key(glfw.KeySpace)
@@ -376,145 +389,74 @@ const (
 //
 // For now, assets are read directly from the current working directory.
 func Open(name string) (vfs.ReadSeekCloser, error) {
+	// TODO: Support mobile.
 	return os.Open(name)
 }
 
 // ---
 
 func WaitEvents() {
-	glfw.WaitEvents()
+	panic("not implemented")
 }
 
 func PostEmptyEvent() {
-	glfw.PostEmptyEvent()
+	panic("not implemented")
 }
 
 func DefaultWindowHints() {
-	glfw.DefaultWindowHints()
+	panic("not implemented")
 }
 
 type CloseCallback func(w *Window)
 
 func (w *Window) SetCloseCallback(cbfun CloseCallback) (previous CloseCallback) {
-	wrappedCbfun := func(_ *glfw.Window) {
-		cbfun(w)
-	}
-
-	p := w.Window.SetCloseCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type RefreshCallback func(w *Window)
 
 func (w *Window) SetRefreshCallback(cbfun RefreshCallback) (previous RefreshCallback) {
-	wrappedCbfun := func(_ *glfw.Window) {
-		cbfun(w)
-	}
-
-	p := w.Window.SetRefreshCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type SizeCallback func(w *Window, width int, height int)
 
 func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
-	wrappedCbfun := func(_ *glfw.Window, width int, height int) {
-		cbfun(w, width, height)
-	}
-
-	p := w.Window.SetSizeCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type CursorEnterCallback func(w *Window, entered bool)
 
 func (w *Window) SetCursorEnterCallback(cbfun CursorEnterCallback) (previous CursorEnterCallback) {
-	wrappedCbfun := func(_ *glfw.Window, entered bool) {
-		cbfun(w, entered)
-	}
-
-	p := w.Window.SetCursorEnterCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type CharModsCallback func(w *Window, char rune, mods ModifierKey)
 
 func (w *Window) SetCharModsCallback(cbfun CharModsCallback) (previous CharModsCallback) {
-	wrappedCbfun := func(_ *glfw.Window, char rune, mods glfw.ModifierKey) {
-		cbfun(w, char, ModifierKey(mods))
-	}
-
-	p := w.Window.SetCharModsCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type PosCallback func(w *Window, xpos int, ypos int)
 
 func (w *Window) SetPosCallback(cbfun PosCallback) (previous PosCallback) {
-	wrappedCbfun := func(_ *glfw.Window, xpos int, ypos int) {
-		cbfun(w, xpos, ypos)
-	}
-
-	p := w.Window.SetPosCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type FocusCallback func(w *Window, focused bool)
 
 func (w *Window) SetFocusCallback(cbfun FocusCallback) (previous FocusCallback) {
-	wrappedCbfun := func(_ *glfw.Window, focused bool) {
-		cbfun(w, focused)
-	}
-
-	p := w.Window.SetFocusCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type IconifyCallback func(w *Window, iconified bool)
 
 func (w *Window) SetIconifyCallback(cbfun IconifyCallback) (previous IconifyCallback) {
-	wrappedCbfun := func(_ *glfw.Window, iconified bool) {
-		cbfun(w, iconified)
-	}
-
-	p := w.Window.SetIconifyCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
 
 type DropCallback func(w *Window, names []string)
 
 func (w *Window) SetDropCallback(cbfun DropCallback) (previous DropCallback) {
-	wrappedCbfun := func(_ *glfw.Window, names []string) {
-		cbfun(w, names)
-	}
-
-	p := w.Window.SetDropCallback(wrappedCbfun)
-	_ = p
-
-	// TODO: Handle previous.
-	return nil
+	panic("not implemented")
 }
