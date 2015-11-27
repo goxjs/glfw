@@ -67,7 +67,15 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	// Use glfw hints.
 	attrs := defaultAttributes()
 	attrs.Alpha = (hints[AlphaBits] > 0)
+	if _, ok := hints[Depth]; ok {
+		attrs.Depth = (hints[Depth] > 0)
+	}
+	attrs.Stencil = (hints[Stencil] > 0)
 	attrs.Antialias = (hints[Samples] > 0)
+	attrs.PremultipliedAlpha = (hints[PremultipliedAlpha] > 0)
+	attrs.PreserveDrawingBuffer = (hints[PreserveDrawingBuffer] > 0)
+	attrs.PreferLowPowerToHighPerformance = (hints[PreferLowPowerToHighPerformance] > 0)
+	attrs.FailIfMajorPerformanceCaveat = (hints[FailIfMajorPerformanceCaveat] > 0)
 
 	// Create GL context.
 	context, err := newContext(canvas.Underlying(), attrs)
