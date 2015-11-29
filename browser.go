@@ -67,10 +67,10 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	// Use glfw hints.
 	attrs := defaultAttributes()
 	attrs.Alpha = (hints[AlphaBits] > 0)
-	if _, ok := hints[Depth]; ok {
-		attrs.Depth = (hints[Depth] > 0)
+	if _, ok := hints[DepthBits]; ok {
+		attrs.Depth = (hints[DepthBits] > 0)
 	}
-	attrs.Stencil = (hints[Stencil] > 0)
+	attrs.Stencil = (hints[StencilBits] > 0)
 	attrs.Antialias = (hints[Samples] > 0)
 	attrs.PremultipliedAlpha = (hints[PremultipliedAlpha] > 0)
 	attrs.PreserveDrawingBuffer = (hints[PreserveDrawingBuffer] > 0)
