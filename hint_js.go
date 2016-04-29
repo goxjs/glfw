@@ -11,6 +11,7 @@ const (
 	DepthBits
 	StencilBits
 	Samples
+	Resizable
 
 	// goxjs/glfw-specific hints for WebGL.
 	PremultipliedAlpha

@@ -11,6 +11,7 @@ const (
 	DepthBits   = Hint(glfw.DepthBits)
 	StencilBits = Hint(glfw.StencilBits)
 	Samples     = Hint(glfw.Samples)
+	Resizable   = Hint(glfw.Resizable)
 
 	// These hints used for WebGL contexts, ignored on desktop.
 	PremultipliedAlpha = noopHint
