@@ -3,17 +3,14 @@
 package glfw
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"runtime"
 
 	"github.com/gopherjs/gopherjs/js"
-	"golang.org/x/tools/godoc/vfs"
 	"honnef.co/go/js/dom"
 )
 
@@ -778,28 +775,17 @@ const (
 	ModSuper
 )
 
-// Open opens a named asset.
-func Open(name string) (vfs.ReadSeekCloser, error) {
+// Open opens a named asset. It's the caller's responsibility to close it when done.
+func Open(name string) (io.ReadCloser, error) {
 	resp, err := http.Get(name)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("non-200 status: %s", resp.Status)
 	}
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return nopCloser{bytes.NewReader(b)}, nil
+	return resp.Body, nil
 }
-
-type nopCloser struct {
-	io.ReadSeeker
-}
-
-func (nopCloser) Close() error { return nil }
 
 // ---
 

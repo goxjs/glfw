@@ -3,11 +3,11 @@
 package glfw
 
 import (
+	"io"
 	"os"
 	"runtime"
 
 	"github.com/go-gl/glfw/v3.1/glfw"
-	"golang.org/x/tools/godoc/vfs"
 )
 
 func init() {
@@ -372,10 +372,10 @@ const (
 	ModSuper   = ModifierKey(glfw.ModSuper)
 )
 
-// Open opens a named asset.
+// Open opens a named asset. It's the caller's responsibility to close it when done.
 //
 // For now, assets are read directly from the current working directory.
-func Open(name string) (vfs.ReadSeekCloser, error) {
+func Open(name string) (io.ReadCloser, error) {
 	return os.Open(name)
 }
 
