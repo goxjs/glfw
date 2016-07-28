@@ -4,7 +4,7 @@ addons:
     - libxxf86vm-dev
 language: go
 go:
-  - 1.6.2
+  - 1.6.3
   - tip
 matrix:
   allow_failures:

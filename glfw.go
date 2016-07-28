@@ -2,6 +2,8 @@
 // with desktop (via glfw) and browser (via HTML5 canvas) backends.
 //
 // It is used for creating a GL context and receiving events.
+//
+// Note: This package is currently in development. The API is incomplete and may change.
 package glfw
 
 // ContextWatcher is a general mechanism for being notified when context is made current or detached.

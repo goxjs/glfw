@@ -5,14 +5,14 @@ with desktop (via glfw) and browser (via HTML5 canvas) backends.
 
 It is used for creating a GL context and receiving events.
 
-**Unstable, incomplete API:** This package is currently in development. The API is incomplete and may change.
+**Note:** This package is currently in development. The API is incomplete and may change.
 
 Installation
 ------------
 
 ```bash
 go get -u github.com/goxjs/glfw
-go get -u -d -tags=js github.com/goxjs/glfw
+GOARCH=js go get -u -d github.com/goxjs/glfw
 ```
 
 License
