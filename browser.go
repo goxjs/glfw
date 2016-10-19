@@ -262,8 +262,10 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		if touches.Length() > 0 {
 			t := touches.Index(0)
 
-			if w.mouseMovementCallback != nil {
-				go w.mouseMovementCallback(w, t.Get("clientX").Float(), t.Get("clientY").Float(), t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
+			if w.touches != nil && w.touches.Length() > 0 { // This event is a movement only if we previously had > 0 touch points.
+				if w.mouseMovementCallback != nil {
+					go w.mouseMovementCallback(w, t.Get("clientX").Float(), t.Get("clientY").Float(), t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
+				}
 			}
 
 			w.cursorPos[0], w.cursorPos[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
