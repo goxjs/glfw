@@ -109,20 +109,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		width := dom.GetWindow().InnerWidth()
 		height := dom.GetWindow().InnerHeight()
 
-		devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
-		w.canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
-		w.canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
-		w.canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
-		w.canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
-
-		if w.framebufferSizeCallback != nil {
-			// TODO: Callbacks may be blocking so they need to happen asyncronously. However,
-			//       GLFW API promises the callbacks will occur from one thread (i.e., sequentially), so may want to do that.
-			go w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
-		}
-		if w.sizeCallback != nil {
-			go w.sizeCallback(w, int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height))
-		}
+		w.SetSize(width, height)
 	})
 
 	document.AddEventListener("keydown", false, func(event dom.Event) {
@@ -326,7 +313,20 @@ func (w *Window) SetPos(xpos, ypos int) {
 }
 
 func (w *Window) SetSize(width, height int) {
-	fmt.Println("not implemented: SetSize:", width, height)
+	devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
+	w.canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
+	w.canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
+	w.canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
+	w.canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
+
+	if w.framebufferSizeCallback != nil {
+		// TODO: Callbacks may be blocking so they need to happen asyncronously. However,
+		//       GLFW API promises the callbacks will occur from one thread (i.e., sequentially), so may want to do that.
+		go w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
+	}
+	if w.sizeCallback != nil {
+		go w.sizeCallback(w, int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height))
+	}
 }
 
 // goFullscreenIfRequested performs webkitRequestFullscreen if it was scheduled. It is called only from
