@@ -21,9 +21,9 @@ GOARCH=js go get -u -d github.com/goxjs/glfw
 Directories
 -----------
 
-| Path                                                                 | Synopsis                                                           |
-|----------------------------------------------------------------------|--------------------------------------------------------------------|
-| [tests/events](https://godoc.org/github.com/goxjs/glfw/tests/events) | events hooks every available callback and outputs their arguments. |
+| Path                                                               | Synopsis                                                           |
+|--------------------------------------------------------------------|--------------------------------------------------------------------|
+| [test/events](https://godoc.org/github.com/goxjs/glfw/test/events) | events hooks every available callback and outputs their arguments. |
 
 License
 -------
