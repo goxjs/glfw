@@ -471,12 +471,10 @@ func (w *Window) SwapBuffers() error {
 	return nil
 }
 
-var animationFrameChan = make(chan struct{})
+var animationFrameChan = make(chan struct{}, 1)
 
 func animationFrame() {
-	go func() {
-		animationFrameChan <- struct{}{}
-	}()
+	animationFrameChan <- struct{}{}
 }
 
 func (w *Window) GetCursorPos() (x, y float64) {
