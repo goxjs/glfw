@@ -762,13 +762,13 @@ const (
 type InputMode int
 
 const (
-	CursorMode             InputMode = iota
+	CursorMode InputMode = iota
 	StickyKeysMode
 	StickyMouseButtonsMode
 )
 
 const (
-	CursorNormal   = iota
+	CursorNormal = iota
 	CursorHidden
 	CursorDisabled
 )
@@ -776,7 +776,7 @@ const (
 type ModifierKey int
 
 const (
-	ModShift   ModifierKey = (1 << iota)
+	ModShift ModifierKey = (1 << iota)
 	ModControl
 	ModAlt
 	ModSuper
