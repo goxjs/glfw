@@ -104,6 +104,18 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 	}
 
+	dom.GetWindow().AddEventListener("focus", false, func(_ dom.Event) {
+		if w.focusCallback != nil {
+			w.focusCallback(w, true)
+		}
+	})
+
+	dom.GetWindow().AddEventListener("blur", false, func(_ dom.Event) {
+		if w.focusCallback != nil {
+			w.focusCallback(w, false)
+		}
+	})
+
 	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
 		// HACK: Go fullscreen?
 		width := dom.GetWindow().InnerWidth()
@@ -317,6 +329,7 @@ type Window struct {
 	scrollCallback          ScrollCallback
 	framebufferSizeCallback FramebufferSizeCallback
 	sizeCallback            SizeCallback
+	focusCallback           FocusCallback
 
 	touches *js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -755,13 +768,13 @@ const (
 type InputMode int
 
 const (
-	CursorMode InputMode = iota
+	CursorMode             InputMode = iota
 	StickyKeysMode
 	StickyMouseButtonsMode
 )
 
 const (
-	CursorNormal = iota
+	CursorNormal   = iota
 	CursorHidden
 	CursorDisabled
 )
@@ -769,7 +782,7 @@ const (
 type ModifierKey int
 
 const (
-	ModShift ModifierKey = (1 << iota)
+	ModShift   ModifierKey = (1 << iota)
 	ModControl
 	ModAlt
 	ModSuper
@@ -892,10 +905,9 @@ func (w *Window) SetPosCallback(cbfun PosCallback) (previous PosCallback) {
 type FocusCallback func(w *Window, focused bool)
 
 func (w *Window) SetFocusCallback(cbfun FocusCallback) (previous FocusCallback) {
-	// TODO: Implement.
-
-	// TODO: Handle previous.
-	return nil
+	previous = w.focusCallback
+	w.focusCallback = cbfun
+	return
 }
 
 type IconifyCallback func(w *Window, iconified bool)
