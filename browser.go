@@ -281,6 +281,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	document.AddEventListener("touchmove", false, touchHandler)
 	document.AddEventListener("touchend", false, touchHandler)
 
+	document.AddEventListener("beforeunload", false, func(_ dom.Event) {
+		if w.closeCallback != nil {
+			w.closeCallback(w)
+		}
+	})
+
 	// Request first animation frame.
 	js.Global.Call("requestAnimationFrame", animationFrame)
 
@@ -317,6 +323,7 @@ type Window struct {
 	scrollCallback          ScrollCallback
 	framebufferSizeCallback FramebufferSizeCallback
 	sizeCallback            SizeCallback
+	closeCallback           CloseCallback
 
 	touches *js.Object // Hacky mouse-emulation-via-touch.
 }
@@ -838,10 +845,9 @@ func (w *Window) Destroy() {
 type CloseCallback func(w *Window)
 
 func (w *Window) SetCloseCallback(cbfun CloseCallback) (previous CloseCallback) {
-	// TODO: Implement.
-
-	// TODO: Handle previous.
-	return nil
+	previous = w.closeCallback
+	w.closeCallback = cbfun
+	return
 }
 
 type RefreshCallback func(w *Window)
