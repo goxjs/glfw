@@ -93,34 +93,32 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 	}
 
-	/*dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
+	js.Global().Call("addEventListener", "resize", js.NewEventCallback(0, func(event js.Value) {
 		// HACK: Go fullscreen?
-		width := dom.GetWindow().InnerWidth()
-		height := dom.GetWindow().InnerHeight()
+		width := js.Global().Get("innerWidth").Int()
+		height := js.Global().Get("innerHeight").Int()
 
-		devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
-		w.canvas.Width = int(float64(width)*devicePixelRatio + 0.5)   // Nearest non-negative int.
-		w.canvas.Height = int(float64(height)*devicePixelRatio + 0.5) // Nearest non-negative int.
-		w.canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", width), "")
-		w.canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", height), "")
+		devicePixelRatio := js.Global().Get("devicePixelRatio").Float()
+		canvas.Set("width", int(float64(width)*devicePixelRatio+0.5))   // Nearest non-negative int.
+		canvas.Set("height", int(float64(height)*devicePixelRatio+0.5)) // Nearest non-negative int.
+		canvas.Get("style").Call("setProperty", "width", fmt.Sprintf("%vpx", width))
+		canvas.Get("style").Call("setProperty", "height", fmt.Sprintf("%vpx", height))
 
 		if w.framebufferSizeCallback != nil {
 			// TODO: Callbacks may be blocking so they need to happen asyncronously. However,
 			//       GLFW API promises the callbacks will occur from one thread (i.e., sequentially), so may want to do that.
-			go w.framebufferSizeCallback(w, w.canvas.Width, w.canvas.Height)
+			go w.framebufferSizeCallback(w, w.canvas.Get("width").Int(), w.canvas.Get("height").Int())
 		}
 		if w.sizeCallback != nil {
-			go w.sizeCallback(w, int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height))
+			go w.sizeCallback(w, w.canvas.Call("getBoundingClientRect").Get("width").Int(), w.canvas.Call("getBoundingClientRect").Get("height").Int())
 		}
-	})
+	}))
 
-	document.AddEventListener("keydown", false, func(event dom.Event) {
+	document.Call("addEventListener", "keydown", js.NewEventCallback(js.PreventDefault, func(ke js.Value) {
 		w.goFullscreenIfRequested()
 
-		ke := event.(*dom.KeyboardEvent)
-
 		action := Press
-		if ke.Repeat {
+		if ke.Get("repeat").Bool() {
 			action = Repeat
 		}
 
@@ -138,13 +136,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 			go w.keyCallback(w, key, -1, action, mods)
 		}
-
-		ke.PreventDefault()
-	})
-	document.AddEventListener("keyup", false, func(event dom.Event) {
+	}))
+	document.Call("addEventListener", "keyup", js.NewEventCallback(js.PreventDefault, func(ke js.Value) {
 		w.goFullscreenIfRequested()
-
-		ke := event.(*dom.KeyboardEvent)
 
 		key := toKey(ke)
 
@@ -160,11 +154,9 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 			go w.keyCallback(w, key, -1, Release, mods)
 		}
+	}))
 
-		ke.PreventDefault()
-	})
-
-	document.AddEventListener("mousedown", false, func(event dom.Event) {
+	/*document.AddEventListener("mousedown", false, func(event dom.Event) {
 		w.goFullscreenIfRequested()
 
 		me := event.(*dom.MouseEvent)
@@ -678,42 +670,48 @@ const (
 )
 
 // toKey extracts Key from given KeyboardEvent.
-/*func toKey(ke *dom.KeyboardEvent) Key {
-	key := Key(ke.KeyCode)
+func toKey(ke js.Value) Key {
+	// TODO: Factor out into DOM package.
+	const (
+		KeyLocationLeft  = 1
+		KeyLocationRight = 2
+	)
+
+	key := Key(ke.Get("keyCode").Int())
 	switch {
-	case key == 16 && ke.Location == dom.KeyLocationLeft:
+	case key == 16 && ke.Get("location").Int() == KeyLocationLeft:
 		key = KeyLeftShift
-	case key == 16 && ke.Location == dom.KeyLocationRight:
+	case key == 16 && ke.Get("location").Int() == KeyLocationRight:
 		key = KeyRightShift
-	case key == 17 && ke.Location == dom.KeyLocationLeft:
+	case key == 17 && ke.Get("location").Int() == KeyLocationLeft:
 		key = KeyLeftControl
-	case key == 17 && ke.Location == dom.KeyLocationRight:
+	case key == 17 && ke.Get("location").Int() == KeyLocationRight:
 		key = KeyRightControl
-	case key == 18 && ke.Location == dom.KeyLocationLeft:
+	case key == 18 && ke.Get("location").Int() == KeyLocationLeft:
 		key = KeyLeftAlt
-	case key == 18 && ke.Location == dom.KeyLocationRight:
+	case key == 18 && ke.Get("location").Int() == KeyLocationRight:
 		key = KeyRightAlt
 	}
 	return key
 }
 
 // toModifierKey extracts ModifierKey from given KeyboardEvent.
-func toModifierKey(ke *dom.KeyboardEvent) ModifierKey {
+func toModifierKey(ke js.Value) ModifierKey {
 	mods := ModifierKey(0)
-	if ke.ShiftKey {
+	if ke.Get("shiftKey").Bool() {
 		mods += ModShift
 	}
-	if ke.CtrlKey {
+	if ke.Get("ctrlKey").Bool() {
 		mods += ModControl
 	}
-	if ke.AltKey {
+	if ke.Get("altKey").Bool() {
 		mods += ModAlt
 	}
-	if ke.MetaKey {
+	if ke.Get("metaKey").Bool() {
 		mods += ModSuper
 	}
 	return mods
-}*/
+}
 
 type MouseButton int
 
