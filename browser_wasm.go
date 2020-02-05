@@ -93,7 +93,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		}
 	}
 
-	js.Global().Call("addEventListener", "resize", js.NewEventCallback(0, func(event js.Value) {
+	js.Global().Call("addEventListener", "resize", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// HACK: Go fullscreen?
 		width := js.Global().Get("innerWidth").Int()
 		height := js.Global().Get("innerHeight").Int()
@@ -112,9 +112,11 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		if w.sizeCallback != nil {
 			go w.sizeCallback(w, w.canvas.Call("getBoundingClientRect").Get("width").Int(), w.canvas.Call("getBoundingClientRect").Get("height").Int())
 		}
+		return nil
 	}))
 
-	document.Call("addEventListener", "keydown", js.NewEventCallback(js.PreventDefault, func(ke js.Value) {
+	document.Call("addEventListener", "keydown", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		ke := args[0]
 		w.goFullscreenIfRequested()
 
 		action := Press
@@ -136,8 +138,12 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 			go w.keyCallback(w, key, -1, action, mods)
 		}
+
+		ke.Call("preventDefault")
+		return nil
 	}))
-	document.Call("addEventListener", "keyup", js.NewEventCallback(js.PreventDefault, func(ke js.Value) {
+	document.Call("addEventListener", "keyup", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		ke := args[0]
 		w.goFullscreenIfRequested()
 
 		key := toKey(ke)
@@ -154,41 +160,52 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 			go w.keyCallback(w, key, -1, Release, mods)
 		}
+
+		ke.Call("preventDefault")
+		return nil
+	}))
+	document.Call("addEventListener", "mousedown", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		me := args[0]
+		w.goFullscreenIfRequested()
+
+		button := me.Get("button").Int()
+		if !(button >= 0 && button <= 2) {
+			return nil
+		}
+
+		w.mouseButton[button] = Press
+		if w.mouseButtonCallback != nil {
+			go w.mouseButtonCallback(w, MouseButton(button), Press, 0)
+		}
+
+		me.Call("preventDefault")
+		return nil
+	}))
+	document.Call("addEventListener", "mouseup", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		me := args[0]
+		w.goFullscreenIfRequested()
+
+		button := me.Get("button").Int()
+		if !(button >= 0 && button <= 2) {
+			return nil
+		}
+
+		w.mouseButton[button] = Release
+		if w.mouseButtonCallback != nil {
+			go w.mouseButtonCallback(w, MouseButton(button), Release, 0)
+		}
+
+		me.Call("preventDefault")
+		return nil
+	}))
+	document.Call("addEventListener", "contextmenu", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		me := args[0]
+		me.Call("preventDefault")
+		return nil
 	}))
 
-	/*document.AddEventListener("mousedown", false, func(event dom.Event) {
-		w.goFullscreenIfRequested()
-
-		me := event.(*dom.MouseEvent)
-		if !(me.Button >= 0 && me.Button <= 2) {
-			return
-		}
-
-		w.mouseButton[me.Button] = Press
-		if w.mouseButtonCallback != nil {
-			go w.mouseButtonCallback(w, MouseButton(me.Button), Press, 0)
-		}
-
-		me.PreventDefault()
-	})
-	document.AddEventListener("mouseup", false, func(event dom.Event) {
-		w.goFullscreenIfRequested()
-
-		me := event.(*dom.MouseEvent)
-		if !(me.Button >= 0 && me.Button <= 2) {
-			return
-		}
-
-		w.mouseButton[me.Button] = Release
-		if w.mouseButtonCallback != nil {
-			go w.mouseButtonCallback(w, MouseButton(me.Button), Release, 0)
-		}
-
-		me.PreventDefault()
-	})*/
-	document.Call("addEventListener", "contextmenu", js.NewEventCallback(js.PreventDefault, func(js.Value) {}))
-
-	document.Call("addEventListener", "mousemove", js.NewEventCallback(js.PreventDefault, func(me js.Value) {
+	document.Call("addEventListener", "mousemove", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		me := args[0]
 		var movementX, movementY float64
 		if !w.missing.pointerLock {
 			movementX = me.Get("movementX").Float()
@@ -205,56 +222,65 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		if w.mouseMovementCallback != nil {
 			go w.mouseMovementCallback(w, w.cursorPos[0], w.cursorPos[1], movementX, movementY)
 		}
+		me.Call("preventDefault")
+		return nil
 	}))
-	/*document.AddEventListener("wheel", false, func(event dom.Event) {
-		we := event.(*dom.WheelEvent)
+	document.Call("addEventListener", "wheel", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		we := args[0]
+
+		deltaX := we.Get("deltaX").Float()
+		deltaY := we.Get("deltaY").Float()
 
 		var multiplier float64
-		switch we.DeltaMode {
-		case dom.DeltaPixel:
-			multiplier = 0.1
-		case dom.DeltaLine:
-			multiplier = 1
-		default:
-			log.Println("unsupported WheelEvent.DeltaMode:", we.DeltaMode)
-			multiplier = 1
-		}
+		/*
+			switch we.DeltaMode {
+			case dom.DeltaPixel:
+				multiplier = 0.1
+			case dom.DeltaLine:
+				multiplier = 1
+			default:
+				log.Println("unsupported WheelEvent.DeltaMode:", we.DeltaMode)
+				multiplier = 1
+			}*/
+		multiplier = 1
 
 		if w.scrollCallback != nil {
-			go w.scrollCallback(w, -we.DeltaX*multiplier, -we.DeltaY*multiplier)
+			go w.scrollCallback(w, -deltaX*multiplier, -deltaY*multiplier)
 		}
 
-		we.PreventDefault()
-	})
+		we.Call("preventDefault")
+		return nil
+	}))
 
-	// Hacky mouse-emulation-via-touch.
-	touchHandler := func(event dom.Event) {
-		w.goFullscreenIfRequested()
+	/*
+		// Hacky mouse-emulation-via-touch.
+		touchHandler := func(event dom.Event) {
+			w.goFullscreenIfRequested()
 
-		te := event.(*dom.TouchEvent)
+			te := event.(*dom.TouchEvent)
 
-		touches := te.Get("touches")
-		if touches.Length() > 0 {
-			t := touches.Index(0)
+			touches := te.Get("touches")
+			if touches.Length() > 0 {
+				t := touches.Index(0)
 
-			if w.touches != nil && w.touches.Length() > 0 { // This event is a movement only if we previously had > 0 touch points.
-				if w.mouseMovementCallback != nil {
-					go w.mouseMovementCallback(w, t.Get("clientX").Float(), t.Get("clientY").Float(), t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
+				if w.touches != nil && w.touches.Length() > 0 { // This event is a movement only if we previously had > 0 touch points.
+					if w.mouseMovementCallback != nil {
+						go w.mouseMovementCallback(w, t.Get("clientX").Float(), t.Get("clientY").Float(), t.Get("clientX").Float()-w.cursorPos[0], t.Get("clientY").Float()-w.cursorPos[1])
+					}
+				}
+
+				w.cursorPos[0], w.cursorPos[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
+				if w.cursorPosCallback != nil {
+					go w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
 				}
 			}
+			w.touches = touches
 
-			w.cursorPos[0], w.cursorPos[1] = t.Get("clientX").Float(), t.Get("clientY").Float()
-			if w.cursorPosCallback != nil {
-				go w.cursorPosCallback(w, w.cursorPos[0], w.cursorPos[1])
-			}
+			te.PreventDefault()
 		}
-		w.touches = touches
-
-		te.PreventDefault()
-	}
-	document.AddEventListener("touchstart", false, touchHandler)
-	document.AddEventListener("touchmove", false, touchHandler)
-	document.AddEventListener("touchend", false, touchHandler)*/
+		document.AddEventListener("touchstart", false, touchHandler)
+		document.AddEventListener("touchmove", false, touchHandler)
+		document.AddEventListener("touchend", false, touchHandler)*/
 
 	// Request first animation frame.
 	js.Global().Call("requestAnimationFrame", animationFrameCallback)
@@ -448,8 +474,10 @@ func (w *Window) SwapBuffers() error {
 
 var animationFrameChan = make(chan struct{}, 1)
 
-var animationFrameCallback = js.NewCallback(func([]js.Value) {
+var animationFrameCallback = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 	animationFrameChan <- struct{}{}
+
+	return nil
 })
 
 func (w *Window) GetCursorPos() (x, y float64) {
