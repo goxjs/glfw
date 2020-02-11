@@ -24,6 +24,11 @@ func newContext(canvas js.Value, ca *contextAttributes) (context js.Value, err e
 	}
 
 	if gl := canvas.Call("getContext", "webgl", attrs); gl != js.Null() {
+		debug := js.Global().Get("WebGLDebugUtils")
+		if debug == js.Undefined() {
+			return gl, errors.New("No debugging for WebGL.")
+		}
+		gl = debug.Call("makeDebugContext", gl)
 		return gl, nil
 	} else if gl := canvas.Call("getContext", "experimental-webgl", attrs); gl != js.Null() {
 		return gl, nil
