@@ -72,6 +72,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	w := &Window{
 		canvas:  canvas,
 		context: context,
+		devicePixelRatio: devicePixelRatio,
 	}
 
 	if w.canvas.Get("requestPointerLock") == js.Undefined() ||
@@ -98,7 +99,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		width := js.Global().Get("innerWidth").Int()
 		height := js.Global().Get("innerHeight").Int()
 
-		devicePixelRatio := js.Global().Get("devicePixelRatio").Float()
+		w.devicePixelRatio = js.Global().Get("devicePixelRatio").Float()
 		canvas.Set("width", int(float64(width)*devicePixelRatio+0.5))   // Nearest non-negative int.
 		canvas.Set("height", int(float64(height)*devicePixelRatio+0.5)) // Nearest non-negative int.
 		canvas.Get("style").Call("setProperty", "width", fmt.Sprintf("%vpx", width))
@@ -110,7 +111,8 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			go w.framebufferSizeCallback(w, w.canvas.Get("width").Int(), w.canvas.Get("height").Int())
 		}
 		if w.sizeCallback != nil {
-			go w.sizeCallback(w, w.canvas.Call("getBoundingClientRect").Get("width").Int(), w.canvas.Call("getBoundingClientRect").Get("height").Int())
+			boundingW, boundingH := w.GetSize()
+			go w.sizeCallback(w, boundingW, boundingH)
 		}
 		return nil
 	}))
@@ -305,6 +307,8 @@ type Window struct {
 		fullscreen  bool // Fullscreen API.
 	}
 
+	devicePixelRatio float64
+
 	cursorMode  int
 	cursorPos   [2]float64
 	mouseButton [3]Action
@@ -439,11 +443,10 @@ func (w *Window) SetFramebufferSizeCallback(cbfun FramebufferSizeCallback) (prev
 }
 
 func (w *Window) GetSize() (width, height int) {
-	// TODO: See if dpi adjustments need to be made.
-	//fmt.Println("Window.GetSize:", w.canvas.GetBoundingClientRect().Width, w.canvas.GetBoundingClientRect().Height,
-	//	"->", int(w.canvas.GetBoundingClientRect().Width), int(w.canvas.GetBoundingClientRect().Height))
+	width = int(w.canvas.Call("getBoundingClientRect").Get("width").Float() * w.devicePixelRatio + 0.5)
+	height = int(w.canvas.Call("getBoundingClientRect").Get("height").Float() * w.devicePixelRatio + 0.5)
 
-	return w.canvas.Call("getBoundingClientRect").Get("width").Int(), w.canvas.Call("getBoundingClientRect").Get("height").Int()
+	return width, height
 }
 
 func (w *Window) GetFramebufferSize() (width, height int) {
