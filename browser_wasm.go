@@ -141,6 +141,14 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			go w.keyCallback(w, key, -1, action, mods)
 		}
 
+		if w.charCallback != nil {
+			keyStr := ke.Get("key").String()
+			if len(keyStr) == 1 {
+				keyRune := []rune(keyStr)
+				go w.charCallback(w, keyRune[0])
+			}
+		}
+
 		ke.Call("preventDefault")
 		return nil
 	}))
@@ -320,6 +328,7 @@ type Window struct {
 	mouseButtonCallback     MouseButtonCallback
 	keyCallback             KeyCallback
 	scrollCallback          ScrollCallback
+	charCallback            CharCallback
 	framebufferSizeCallback FramebufferSizeCallback
 	sizeCallback            SizeCallback
 
@@ -411,7 +420,9 @@ func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
 type CharCallback func(w *Window, char rune)
 
 func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
-	// TODO.
+	w.charCallback = cbfun
+
+	// TODO: Handle previous.
 	return nil
 }
 

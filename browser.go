@@ -152,6 +152,13 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 			go w.keyCallback(w, key, -1, action, mods)
 		}
 
+		if w.charCallback != nil {
+			if len(ke.key) == 1 {
+				keyRune := []rune(ke.key)
+				go w.charCallback(w, keyRune[0])
+			}
+		}
+
 		ke.PreventDefault()
 	})
 	document.AddEventListener("keyup", false, func(event dom.Event) {
@@ -318,6 +325,7 @@ type Window struct {
 	mouseMovementCallback   MouseMovementCallback
 	mouseButtonCallback     MouseButtonCallback
 	keyCallback             KeyCallback
+	charCallback            CharCallback
 	scrollCallback          ScrollCallback
 	framebufferSizeCallback FramebufferSizeCallback
 	sizeCallback            SizeCallback
@@ -410,7 +418,9 @@ func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
 type CharCallback func(w *Window, char rune)
 
 func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
-	// TODO.
+	w.charCallback = cbfun
+
+	// TODO: Handle previous.
 	return nil
 }
 
