@@ -393,6 +393,14 @@ func DefaultWindowHints() {
 	glfw.DefaultWindowHints()
 }
 
+func (w *Window) SetClipboardString(str string) {
+	glfw.SetClipboardString(str)
+}
+
+func (w *Window) GetClipboardString() (string, error) {
+        return glfw.GetClipboardString(), nil
+}
+
 type CloseCallback func(w *Window)
 
 func (w *Window) SetCloseCallback(cbfun CloseCallback) (previous CloseCallback) {
