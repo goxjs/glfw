@@ -8,7 +8,7 @@ import (
 )
 
 func newContext(canvas js.Value, ca *contextAttributes) (context js.Value, err error) {
-	if js.Global().Get("WebGLRenderingContext") == js.Undefined() {
+	if js.Global().Get("WebGLRenderingContext").Equal(js.Undefined()) {
 		return js.Value{}, errors.New("Your browser doesn't appear to support WebGL.")
 	}
 
@@ -23,14 +23,14 @@ func newContext(canvas js.Value, ca *contextAttributes) (context js.Value, err e
 		"failIfMajorPerformanceCaveat":    ca.FailIfMajorPerformanceCaveat,
 	}
 
-	if gl := canvas.Call("getContext", "webgl", attrs); gl != js.Null() {
+	if gl := canvas.Call("getContext", "webgl", attrs); !gl.Equal(js.Null()) {
 		debug := js.Global().Get("WebGLDebugUtils")
-		if debug == js.Undefined() {
+		if debug.Equal(js.Undefined()) {
 			return gl, errors.New("No debugging for WebGL.")
 		}
 		gl = debug.Call("makeDebugContext", gl)
 		return gl, nil
-	} else if gl := canvas.Call("getContext", "experimental-webgl", attrs); gl != js.Null() {
+	} else if gl := canvas.Call("getContext", "experimental-webgl", attrs); gl.Equal(js.Null()) {
 		return gl, nil
 	} else {
 		return js.Value{}, errors.New("Creating a WebGL context has failed.")

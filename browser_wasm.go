@@ -40,7 +40,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 	canvas.Get("style").Call("setProperty", "width", fmt.Sprintf("%vpx", width))
 	canvas.Get("style").Call("setProperty", "height", fmt.Sprintf("%vpx", height))
 
-	if document.Get("body") == js.Null() {
+	if document.Get("body").Equal(js.Null()) {
 		body := document.Call("createElement", "body")
 		document.Set("body", body)
 		log.Println("Creating body, since it doesn't exist.")
@@ -65,7 +65,7 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 
 	// Create GL context.
 	context, err := newContext(canvas, attrs)
-	if err != nil {
+	if context.Equal(js.Value{}) {
 		return nil, err
 	}
 
@@ -75,13 +75,13 @@ func CreateWindow(_, _ int, title string, monitor *Monitor, share *Window) (*Win
 		devicePixelRatio: devicePixelRatio,
 	}
 
-	if w.canvas.Get("requestPointerLock") == js.Undefined() ||
-		document.Get("exitPointerLock") == js.Undefined() {
+	if w.canvas.Get("requestPointerLock").Equal(js.Undefined()) ||
+		document.Get("exitPointerLock").Equal(js.Undefined()) {
 
 		w.missing.pointerLock = true
 	}
-	if w.canvas.Get("webkitRequestFullscreen") == js.Undefined() ||
-		document.Get("webkitExitFullscreen") == js.Undefined() {
+	if w.canvas.Get("webkitRequestFullscreen").Equal(js.Undefined()) ||
+		document.Get("webkitExitFullscreen").Equal(js.Undefined()) {
 
 		w.missing.fullscreen = true
 	}
@@ -519,7 +519,7 @@ func (w *Window) GetMouseButton(button MouseButton) Action {
 	}
 
 	// Hacky mouse-emulation-via-touch.
-	if w.touches != (js.Value{}) {
+	if !w.touches.Equal(js.Value{}) {
 		switch button {
 		case MouseButton1:
 			if w.touches.Length() == 1 || w.touches.Length() == 3 {
