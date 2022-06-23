@@ -7,6 +7,8 @@ import "github.com/go-gl/glfw/v3.3/glfw"
 type Hint int
 
 const (
+	ClientAPI = Hint(glfw.ClientAPI)
+
 	AlphaBits   = Hint(glfw.AlphaBits)
 	DepthBits   = Hint(glfw.DepthBits)
 	StencilBits = Hint(glfw.StencilBits)
@@ -18,6 +20,10 @@ const (
 	PreserveDrawingBuffer
 	PreferLowPowerToHighPerformance
 	FailIfMajorPerformanceCaveat
+)
+
+const (
+	NoAPI int = glfw.NoAPI
 )
 
 // noopHint is ignored.
