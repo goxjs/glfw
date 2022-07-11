@@ -13,7 +13,7 @@ It is used for creating a GL context and receiving events.
 Installation
 ------------
 
-```bash
+```sh
 go get github.com/goxjs/glfw
 ```
 
