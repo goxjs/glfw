@@ -1,19 +1,18 @@
-// +build js,!wasm
+// +build js,wasm
 
 package glfw
 
 import (
 	"errors"
-
-	"github.com/gopherjs/gopherjs/js"
+	"syscall/js"
 )
 
-func newContext(canvas *js.Object, ca *contextAttributes) (context *js.Object, err error) {
-	if js.Global.Get("WebGLRenderingContext") == js.Undefined {
-		return nil, errors.New("Your browser doesn't appear to support WebGL.")
+func newContext(canvas js.Value, ca *contextAttributes) (context js.Value, err error) {
+	if js.Global().Get("WebGLRenderingContext") == js.Undefined() {
+		return js.Value{}, errors.New("Your browser doesn't appear to support WebGL.")
 	}
 
-	attrs := map[string]bool{
+	attrs := map[string]interface{}{
 		"alpha":                           ca.Alpha,
 		"depth":                           ca.Depth,
 		"stencil":                         ca.Stencil,
@@ -24,12 +23,12 @@ func newContext(canvas *js.Object, ca *contextAttributes) (context *js.Object, e
 		"failIfMajorPerformanceCaveat":    ca.FailIfMajorPerformanceCaveat,
 	}
 
-	if gl := canvas.Call("getContext", "webgl", attrs); gl != nil {
+	if gl := canvas.Call("getContext", "webgl", attrs); gl != js.Null() {
 		return gl, nil
-	} else if gl := canvas.Call("getContext", "experimental-webgl", attrs); gl != nil {
+	} else if gl := canvas.Call("getContext", "experimental-webgl", attrs); gl != js.Null() {
 		return gl, nil
 	} else {
-		return nil, errors.New("Creating a WebGL context has failed.")
+		return js.Value{}, errors.New("Creating a WebGL context has failed.")
 	}
 }
 
